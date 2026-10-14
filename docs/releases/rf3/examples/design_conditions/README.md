@@ -3,8 +3,8 @@
 Runnable inputs for the five CaGE design conditions, the relative-template inference
 interface, per-axis classifier-free guidance, and motif guidance. Every example uses a
 structure that ships with this repository, so all of them run as-is — except motif
-guidance, which also needs `inference_motif_guidance=true` on the command line (see
-[Motif guidance](#motif-guidance) below).
+guidance, which also needs `inference_motif_guidance=true` and a backbone-level
+template on the command line (see [Motif guidance](#motif-guidance) below).
 
 Run them **from the repository root** — the `components` paths inside each JSON are
 repository-relative and are resolved against the working directory:
@@ -95,6 +95,12 @@ Two things about this set are worth knowing before you read results off it:
 
 ## Motif guidance
 
+**Use motif guidance together with a backbone-level template**, supplied through
+`template_selection`. The example below provides chain A's backbone; adapt the chain
+and residue selections to your scaffold. If enabling CFG, keep the `template` axis
+active (for example, `inference_cfg_scale={template: 1.0}`). The per-sample motif
+arming threshold still applies; see [the full usage requirements](../../../../DESIGN_CONDITIONS.md#10-motif-guidance-motif_guidance_selection).
+
 Motif guidance is the one example that needs an argument on the command line. A task file
 supplies `motif_guidance_selection` and `motif_guidance_reference`, but the switch that arms
 the projection is an engine argument rather than a per-example field, so the JSON on its own
@@ -103,6 +109,7 @@ parses the selection and then never fires — silently, with no warning. The
 
 ```bash
 rf3 fold inputs='docs/releases/rf3/examples/design_conditions/motif_guidance/catalytic_site_9dfn.json' \
+  'template_selection=[A/*/*/N, A/*/*/CA, A/*/*/C, A/*/*/O]' \
   inference_motif_guidance=true
 ```
 

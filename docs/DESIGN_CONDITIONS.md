@@ -446,6 +446,20 @@ It is off by default, and a selection alone does not switch it on: an input that
 still folds unguided and stays comparable with its own baseline. Enabling it without a
 selection raises.
 
+**Use motif guidance together with a backbone-level template.** Provide the scaffold
+backbone through `template_selection`, for example
+`'[A/*/*/N, A/*/*/CA, A/*/*/C, A/*/*/O]'` for chain A (adjust chains and residue ranges
+to your scaffold). The template conditions the network on the backbone geometry;
+motif guidance refines the local motif geometry during sampling. Configure the motif
+atoms and alignment anchors separately with `motif_guidance_selection`.
+
+If using CFG, keep the `template` axis active, for example
+`inference_classifier_free_guidance=true 'inference_cfg_scale={template: 1.0}'`.
+This combination does not require a `distance_template_selection`. Supplying a
+template does not bypass motif guidance's per-sample arming threshold. This is a
+usage requirement; the current CLI does not enforce the presence of a backbone
+template automatically.
+
 ### The eight keys
 
 | Key | Default | Meaning |
@@ -469,6 +483,7 @@ one atom, `A/*/38` a whole residue and `B` a whole chain. Use this explicit form
 
 ```bash
 rf3 fold inputs='docs/releases/rf3/examples/9dfn.cif' \
+  'template_selection=[A/*/*/N, A/*/*/CA, A/*/*/C, A/*/*/O]' \
   inference_motif_guidance=true \
   'motif_guidance_selection=[{name: catalytic_site, atoms: [A/*/38, A/*/45, A/*/47, A/*/110], anchor: [A/CYS/38/SG, A/CYS/45/SG, A/HIS/47/NE2, A/ASN/110/OD1]}, {name: cofactor, atoms: [B]}]'
 ```

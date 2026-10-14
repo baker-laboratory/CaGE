@@ -829,6 +829,11 @@ See [Classifier-Free Guidance](#classifier-free-guidance).
 <details>
 <summary><strong>Motif Guidance Arguments</strong></summary>
 
+**Use motif guidance together with a backbone-level template** via
+`template_selection`; keep the `template` axis active when using CFG. For example,
+chain A's backbone can be selected with
+`'template_selection=[A/*/*/N, A/*/*/CA, A/*/*/C, A/*/*/O]'`.
+
 Motif guidance is **not** a design condition and **not** a CFG axis: it is an untrained
 projection the sampler applies to `x0` after the CFG blend, so it cannot be named in
 `inference_cfg_scale` and it does not change tokenization. See
