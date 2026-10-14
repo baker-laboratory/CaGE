@@ -1,0 +1,19 @@
+defaults:
+  - base@dataset
+  - _self_
+
+probability: 1.0
+
+dataset:
+  name: tf_distillation
+  data: ${paths.data.na_complex_df_path}
+  loader:
+    base_path: ${paths.data.na_complex_distillation_data_dir}
+
+  transform:
+    protein_msa_dirs:
+      - dir: ${paths.data.na_complex_msa_dir}
+        extension: .a3m
+        directory_depth: 1
+    rna_msa_dirs: []
+    pad_dna_p_skip: 0.0

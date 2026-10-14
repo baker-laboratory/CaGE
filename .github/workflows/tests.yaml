@@ -1,0 +1,25 @@
+name: tests
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  cpu-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install (editable, vendored atomworks first)
+        run: |
+          pip install -e "./lib/atomworks[ml]"
+          pip install -e .
+      - name: Tests (CaGE)
+        env:
+          DISABLE_CUEQUIVARIANCE: "1"   # CPU runner: cuequivariance is not installed
+        run: pytest tests models/rf3/tests -q
+      - name: Tests (vendored atomworks, io subset)
+        working-directory: lib/atomworks
+        run: pytest tests/io -q

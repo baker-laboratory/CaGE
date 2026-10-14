@@ -1,0 +1,190 @@
+cff-version: 1.2.0
+message: "If you use CaGE in your research, please cite both the CaGE manuscript and the AtomWorks/RF3 preprint."
+title: "CaGE: design conditions and classifier-free guidance for RF3"
+abstract: >-
+  CaGE extends RF3 with five design conditions (interface hotspots, relative solvent
+  accessibility, hydrogen-bond donor/acceptor identities, interface type and atom-pair
+  distances) and with per-condition classifier-free guidance over eight condition axes,
+  including sigma-interval gating and per-stream confidence.
+type: software
+version: 0.1.0
+license: BSD-3-Clause
+repository-code: "<TODO: public repository URL, filled once the repository is pushed>"
+# Add `date-released:` (YYYY-MM-DD) and `doi:` (the Zenodo software DOI) when the
+# repository snapshot is archived; see docs/WEIGHTS.md for the weight DOIs.
+keywords:
+  - protein design
+  - diffusion models
+  - classifier-free guidance
+  - structure prediction
+
+# Authors of this software release. Names and affiliations only; see the README's
+# "References and sources" section for the
+# module-by-module attribution and PROVENANCE.md for the commit-level record.
+authors:
+  - family-names: "Qian"
+    given-names: "Tingli"
+    affiliation: "Institute for Protein Design, University of Washington"
+  - family-names: "Muraishi"
+    given-names: "Aiko"
+    affiliation: "Institute for Protein Design, University of Washington"
+  - family-names: "Kazman"
+    given-names: "Max"
+    affiliation: "Institute for Protein Design, University of Washington"
+  - family-names: "Brent"
+    given-names: "Rafael"
+    affiliation: "Institute for Protein Design, University of Washington"
+  - family-names: "Nakajima An"
+    given-names: "Davi"
+    affiliation: "Institute for Protein Design, University of Washington"
+  - family-names: "Altae-Tran"
+    given-names: "Han"
+    affiliation: "Institute for Protein Design, University of Washington"
+  - family-names: "DiMaio"
+    given-names: "Frank"
+    affiliation: "Institute for Protein Design, University of Washington"
+
+# The manuscript this software accompanies. Title, full author list and DOI are not yet
+# available and must be filled before release.
+preferred-citation:
+  type: article
+  title: "<TODO: CaGE manuscript title>"
+  authors:
+    - name: "<TODO: full CaGE author list, in submission order>"
+  journal: "<TODO: journal or preprint server>"
+  year: 2026
+  doi: "<TODO: manuscript DOI>"
+
+references:
+  # Verbatim from lib/atomworks/README.md (Citation section) -- do not retype from memory.
+  - type: article
+    title: "Accelerating Biomolecular Modeling with AtomWorks and RF3"
+    journal: "bioRxiv"
+    year: 2025
+    month: 8
+    doi: "10.1101/2025.08.14.670328"
+    notes: "AtomWorks and RF3: the data stack vendored in lib/atomworks and the model CaGE builds on. Corley, Mathis and Krishna contributed equally."
+    authors:
+      - family-names: "Corley"
+        given-names: "Nathaniel"
+      - family-names: "Mathis"
+        given-names: "Simon"
+      - family-names: "Krishna"
+        given-names: "Rohith"
+      - family-names: "Bauer"
+        given-names: "Magnus S."
+      - family-names: "Thompson"
+        given-names: "Tuscan R."
+      - family-names: "Ahern"
+        given-names: "Woody"
+      - family-names: "Kazman"
+        given-names: "Maxwell W."
+      - family-names: "Brent"
+        given-names: "Rafael I."
+      - family-names: "Didi"
+        given-names: "Kieran"
+      - family-names: "Kubaney"
+        given-names: "Andrew"
+      - family-names: "McHugh"
+        given-names: "L."
+      - family-names: "Nagle"
+        given-names: "A."
+      - family-names: "Favor"
+        given-names: "A."
+      - family-names: "Kshirsagar"
+        given-names: "M."
+      - family-names: "Sturmfels"
+        given-names: "P."
+      - family-names: "Li"
+        given-names: "Y."
+      - family-names: "Butcher"
+        given-names: "J."
+      - family-names: "Qiang"
+        given-names: "B."
+      - family-names: "Schaaf"
+        given-names: "L. L."
+      - family-names: "Mitra"
+        given-names: "R."
+      - family-names: "Campbell"
+        given-names: "K."
+      - family-names: "Zhang"
+        given-names: "O."
+      - family-names: "Weissman"
+        given-names: "R."
+      - family-names: "Humphreys"
+        given-names: "I. R."
+      - family-names: "Cong"
+        given-names: "Q."
+      - family-names: "Funk"
+        given-names: "J."
+      - family-names: "Sonthalia"
+        given-names: "S."
+      - family-names: "Lio"
+        given-names: "P."
+      - family-names: "Baker"
+        given-names: "David"
+      - family-names: "DiMaio"
+        given-names: "Frank"
+
+  # RFdiffusion3: the design-task mechanism and the design metrics in models/rf3 were ported
+  # from it (see the module headers in rf3/metrics/ and rf3/data/design_tasks/).
+  - type: article
+    title: "De novo Design of All-atom Biomolecular Interactions with RFdiffusion3"
+    journal: "bioRxiv"
+    year: 2025
+    doi: "10.1101/2025.09.18.676967"
+    authors:
+      - family-names: "Butcher"
+        given-names: "Jasper"
+      - family-names: "Krishna"
+        given-names: "Rohith"
+      - family-names: "Mitra"
+        given-names: "Raktim"
+      - family-names: "Brent"
+        given-names: "Rafael Isaac"
+      - family-names: "Li"
+        given-names: "Yanjing"
+      - family-names: "Corley"
+        given-names: "Nathaniel"
+      - family-names: "Kim"
+        given-names: "Paul T."
+      - family-names: "Funk"
+        given-names: "Jonathan"
+      - family-names: "Mathis"
+        given-names: "Simon Valentin"
+      - family-names: "Salike"
+        given-names: "Saman"
+      - family-names: "Muraishi"
+        given-names: "Aiko"
+      - family-names: "Eisenach"
+        given-names: "Helen"
+      - family-names: "Thompson"
+        given-names: "Tuscan Rock"
+      - family-names: "Chen"
+        given-names: "Jie"
+      - family-names: "Politanska"
+        given-names: "Yuliya"
+      - family-names: "Sehgal"
+        given-names: "Enisha"
+      - family-names: "Coventry"
+        given-names: "Brian"
+      - family-names: "Zhang"
+        given-names: "Odin"
+      - family-names: "Qiang"
+        given-names: "Bo"
+      - family-names: "Didi"
+        given-names: "Kieran"
+      - family-names: "Kazman"
+        given-names: "Maxwell"
+      - family-names: "DiMaio"
+        given-names: "Frank"
+      - family-names: "Baker"
+        given-names: "David"
+    notes: "Source of the ported design-task framework and design metrics."
+
+  - type: software
+    title: "foundry"
+    authors:
+      - name: "Institute for Protein Design, University of Washington"
+    repository-code: "https://github.com/RosettaCommons/foundry"
+    notes: "CaGE is a derivative work of this repository (BSD-3-Clause); see the README's \"References and sources\" section."

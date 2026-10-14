@@ -1,0 +1,25 @@
+defaults:
+  - ddp
+  - loss: structure_prediction_with_confidence
+  - metrics: structure_prediction_with_confidence
+
+_target_: rf3.trainers.rf3.RF3TrainerWithConfidence
+validate_every_n_epochs: 1
+max_epochs: 10_000
+n_examples_per_epoch: 24000
+prevalidate: True
+
+# Disk cache for frozen trunk+diffusion rollouts during conf-head validation/eval.
+# Namespaced by base-weight fingerprint under this directory. Null disables caching.
+val_rollout_cache_dir: null
+
+# We must pre-specify the number of recycles during training so we can pre-sample recycles per batch consistently for each GPU
+n_recycles_train: ${datasets.n_recycles_train}
+
+clip_grad_max_norm: 10.0
+
+output_dir: ${paths.output_dir}
+checkpoint_every_n_epochs: 1
+
+precision: bf16-mixed
+

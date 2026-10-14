@@ -1,0 +1,62 @@
+# AF3 dataset configuration with monomer distillation
+
+defaults:
+  - base
+  # The @ symbol specifies the tree under which the item will be attached to the config
+  - train/pdb/train_interface@train.pdb.sub_datasets.interface
+  - train/pdb/train_pn_unit@train.pdb.sub_datasets.pn_unit
+  - train/distill/mgnify_big_june_2025@train.mgnify_big_june_2025
+  - train/distill/mgnify_small_june_2025@train.mgnify_small_june_2025
+  - train/distill/mgnify_nov_2025@train.mgnify_nov_2025
+  - train/distill/na_complex@train.na_complex_distillation
+  - train/distill/disorder@train.disorder_distillation
+  - train/distill/rna_monomer@train.rna_monomer_distillation
+  #- train/distill/bfvd@train.bfvd_distillation
+  - val/af3_validation@val.af3_validation
+  - val/af3_validation@val.quick_af3_validation_with_templating
+  - val/af3_ab_set@val.af3_ab_set
+  - _self_
+
+# Dataloading pipeline to use
+pipeline_target: rf3.data.pipelines.build_af3_transform_pipeline
+
+# Dataset weighting
+train:
+  pdb:
+    probability: 0.295
+  mgnify_nov_2025:
+    probability: 0.55
+  mgnify_big_june_2025:
+    probability: 0.10
+  mgnify_small_june_2025:
+    probability: 0.025
+  disorder_distillation:
+    probability: 0.01
+  na_complex_distillation:
+    probability: 0.01
+  #bfvd_distillation:
+  #  probability: 0.0
+  rna_monomer_distillation:
+    probability: 0.01
+val:
+  quick_af3_validation_with_templating:
+    dataset:
+      filters:
+        # Only score examples with protein-ligand interfaces
+        - "interfaces_to_score.str.contains('protein-ligand')"
+        # Small examples only - very fast
+        - "n_tokens_total < 400"
+      transform:
+        # +-- Conditioning --+
+        p_unconditional: 0.0 # Always show conditioning
+        # (Templates)
+        template_noise_scales:
+          not_atomized: 1e-4 # No noise on polymer atoms (epsilon to avoid division by zero)
+          atomized: 1e-4 # No noise on ligand atoms (epsilon to avoid division by zero)
+        allowed_chain_types_for_conditioning:
+          _target_: atomworks.enums.ChainType.get_all_types
+        p_condition_per_token: 1.0 # Always condition
+        p_provide_inter_molecule_distances: 0.0 # No inter-chain distances
+        # (Reference conformer)
+        p_give_non_polymer_ref_conf: 1.0 # Always give non-polymer reference conformers
+        p_give_polymer_ref_conf: 1.0 # Always give polymer reference conformers

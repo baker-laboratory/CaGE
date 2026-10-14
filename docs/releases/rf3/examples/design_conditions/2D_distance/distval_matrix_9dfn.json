@@ -1,0 +1,48 @@
+[
+  {
+    "name": "distval_matrix_9dfn",
+    "components": [
+      {
+        "path": "docs/releases/rf3/examples/9dfn.cif"
+      }
+    ],
+    "inference_engine": "rf3",
+    "seed": 0,
+    "distance_template_selection": [
+      {
+        "atoms": [
+          "A/*/38/CA",
+          "A/*/45/CA",
+          "A/*/47/CA",
+          "C/*/402/SD"
+        ],
+        "distance": [
+          [
+            0.0,
+            10.49,
+            9.82,
+            9.24
+          ],
+          [
+            10.49,
+            0.0,
+            5.71,
+            7.09
+          ],
+          [
+            9.82,
+            5.71,
+            0.0,
+            6.71
+          ],
+          [
+            9.24,
+            7.09,
+            6.71,
+            0.0
+          ]
+        ]
+      }
+    ]
+  }
+]

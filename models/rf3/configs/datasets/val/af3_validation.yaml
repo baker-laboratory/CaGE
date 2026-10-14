@@ -1,0 +1,11 @@
+defaults:
+  - base
+
+dataset:
+  name: af3_validation
+  data: ${paths.data.pdb_data_dir}/entry_level_val_df.parquet
+  filters:
+    - "pdb_id not in ['8ckl']"
+  loader:
+    _target_: atomworks.ml.datasets.loaders.create_loader_with_interfaces_and_pn_units_to_score
+    base_path: ${paths.data.pdb_structure_dir}

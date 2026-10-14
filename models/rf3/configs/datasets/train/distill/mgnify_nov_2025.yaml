@@ -1,0 +1,28 @@
+defaults:
+  - base@dataset
+  - _self_
+
+probability: 1.0
+
+dataset:
+  name: mgnify_nov_2025
+  data: ${paths.data.df_dir}/mgnify/mgnify_dec_2025.parquet
+  filters:
+    # We use filters of ptm > 0.7 for old-RF3 distillation and ptm > 0.75 for new-RF3 distillation
+    - "ptm > 0.75"
+  columns_to_load:
+    - example_id
+    - path
+    - ptm
+  loader:
+    base_path: ${paths.data.squash_dir}/mgnify_dec_2025
+
+  transform:
+    protein_msa_dirs:
+      - dir: ${paths.data.mgnify_organized_msa_dir}
+        extension: .a3m.zst
+        directory_depth: 2
+    rna_msa_dirs: []
+    # mgnify b-factor ranges 0-1 not 0-100
+    # We use 0.7 local plddt cutoff for old-RF3 distillation and 0.75 for new-RF3 distillation
+    b_factor_min: 0.75

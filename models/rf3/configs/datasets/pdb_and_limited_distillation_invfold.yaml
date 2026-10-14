@@ -1,0 +1,108 @@
+# Adds a 2% protein-only inverse-folding train subtask (100% seq mask + full
+# backbone template) and an inverse_folding val set. Based directly on
+# pdb_and_limited_distillation; the design val sets (pocket_miss,
+# design_validation) are inlined to keep all run14 val sets without depending on
+# pdb_and_limited_distillation_design. Needs the global _inference_2d_design_tasks
+# (provided by rf3_run14 defaults).
+
+defaults:
+  - pdb_and_limited_distillation
+  - val/pocket_miss@val.pocket_miss
+  - val/af3_validation@val.design_validation
+  - train/pdb/train_pn_unit@train.inverse_folding
+  - train/distill/mgnify_nov_2025@train.mgnify_inverse_folding
+  - val/af3_validation@val.inverse_folding
+  - _self_
+
+train:
+  pdb:
+    probability: 0.48
+  inverse_folding:
+    probability: 0.005
+    dataset:
+      filters:
+        - "release_date < '2022-01-01'"
+        - "resolution < 9.0"
+        - "num_polymer_pn_units <= 300"
+        - "cluster.notnull()"
+        - "pdb_id not in ${resolve_import:atomworks.ml.preprocessing.constants,PDB_IDS_WITH_UNPHYSICAL_BONDS}"
+        - "pdb_id not in ${resolve_import:rf3.data.exclusions,PDB_IDS_TO_HOLD_OUT_FROM_TRAINING}"
+        - "~(q_pn_unit_non_polymer_res_names.notnull() and q_pn_unit_non_polymer_res_names.str.contains('${resolve_import:atomworks.constants,AF3_EXCLUDED_LIGANDS_REGEX}', regex=True))"
+        - "within_20_closest_chains"
+        - "n_prot == 1 or n_peptide == 1"
+      transform:
+        masked_token_prob: 1.0
+        masked_token_frac_ex_to_mask: 1.0
+        p_unconditional: 0.0
+        p_condition_per_token: 1.0
+        p_provide_inter_molecule_distances: 1.0
+        template_noise_scales:
+          atomized: 1.0e-5
+          not_atomized: 0.1
+
+  mgnify_inverse_folding:
+    probability: 0.015
+    dataset:
+      transform:
+        masked_token_prob: 1.0
+        masked_token_frac_ex_to_mask: 1.0
+        p_unconditional: 0.0
+        p_condition_per_token: 1.0
+        p_provide_inter_molecule_distances: 1.0
+        template_noise_scales:
+          atomized: 1.0e-5
+          not_atomized: 0.1
+        protein_msa_dirs: []
+        rna_msa_dirs: []
+
+
+val:
+  pocket_miss:
+    dataset:
+      filters:
+        - "n_tokens_total < 400"
+      transform:
+        p_unconditional: 1.0
+        design_tasks:
+          pl_hotspot:
+            frequency: 100
+            transform:
+              _target_: rf3.data.design_tasks.ppi.PPIHotspot
+              max_hotspots_frac_to_provide: 0.2
+              hotspot_max_distance: 4.5
+              annotate_interface_type: true
+              enable_during_validation: true
+          unconditional:
+            frequency: 0.001
+            transform:
+              _target_: rf3.data.design_tasks.base.UnconditionalTask
+
+  design_validation:
+    dataset:
+      filters:
+        - "pdb_id not in ['8ckl', '9ba3']"
+        - "interfaces_to_score.str.contains('protein-ligand')"
+        - "n_tokens_total < 350"
+      transform:
+        is_inference: False
+        crop_size: ${datasets.crop_size}
+        max_atoms_in_crop: 3800
+        p_unconditional: 1.0
+        design_tasks: ${_inference_2d_design_tasks}
+        masked_token_prob: ${datasets.masked_token_prob}
+        masked_token_frac_ex_to_mask: ${datasets.masked_token_frac_ex_to_mask}
+
+  inverse_folding:
+    dataset:
+      filters:
+        - "pdb_id not in ['8ckl']"
+        - "n_tokens_total < 350"
+      transform:
+        masked_token_prob: 1.0
+        masked_token_frac_ex_to_mask: 1.0
+        p_unconditional: 0.0
+        p_condition_per_token: 1.0
+        p_provide_inter_molecule_distances: 1.0
+        template_noise_scales:
+          atomized: 1.0e-5
+          not_atomized: 0.1

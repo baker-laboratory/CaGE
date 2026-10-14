@@ -1,0 +1,30 @@
+defaults:
+  - base@dataset
+  - _self_
+
+probability: 1.0
+
+dataset:
+  name: rna_monomer_distillation
+  data: ${paths.data.rna_distillation_df_path}
+  columns_to_load:
+    - example_id
+    - path
+    - cluster_id
+    - seq_hash
+    - overall_plddt
+    - overall_pde
+    - overall_pae
+  loader:
+    base_path: ${paths.data.rna_distillation_data_dir}
+
+  transform:
+    protein_msa_dirs: []
+    rna_msa_dirs:
+      - dir: ${paths.data.rna_monomer_msa_dir}
+        extension: .afa
+        directory_depth: 2
+    crop_contiguous_probability: 1.0
+    crop_spatial_probability: 0.0
+    pad_dna_p_skip: 0.0
+    b_factor_min: 0.6

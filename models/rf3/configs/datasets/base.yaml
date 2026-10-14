@@ -1,0 +1,59 @@
+# Base Transform defaults
+diffusion_batch_size_train: 48
+diffusion_batch_size_inference: 5
+
+n_recycles_train: 4
+n_recycles_validation: 10
+
+run_confidence_head: false
+
+# "Template" conditioning
+p_unconditional: 0.99
+
+# edm pstd and pmean for distill and native
+pmean_pdb: -1.2
+pstd_pdb: 1.5
+pmean_distill: -1.2
+pstd_distill: 1.5
+
+n_msa: 1024
+crop_size: 384
+
+#fd: =8.5*384 ... this should cover ~95% of all 384-residue proteins
+max_atoms_in_crop: 3264
+
+key_to_balance: n_tokens_total
+
+take_first_chiral_subordering: false
+use_element_for_atom_names_of_atomized_tokens: true
+missing_atom_behavior: rollout
+
+mirror_prob: 0.005
+atomization_prob: 0.02
+ligand_dropout_prob: 0.0
+p_atomize_disulfide: 0.03
+
+add_residue_is_paired_feature: true
+add_cyclic_bonds: true
+
+
+check_chirality: true
+chirality_swap_pdb_codes: null
+
+masked_token_prob: 0.0
+masked_token_frac_ex_to_mask: 0.0
+provide_diffusion_ref_copy: false
+
+input_feature_schema: rf3.data.schema.rf3.RF3DataSample
+
+# Fixed padding dimensions for torch.compile compatibility
+# When set, all batches are padded to these exact sizes
+# Example: {I: 512, L: 4096, S: 256}
+fixed_padding_dimensions: 
+  I: ${datasets.crop_size}
+  L: ${datasets.max_atoms_in_crop}
+  num_recycles: ${datasets.n_recycles_train}
+  D: ${datasets.diffusion_batch_size_train}
+  num_chiral_centers: 4000
+  S: 1024
+

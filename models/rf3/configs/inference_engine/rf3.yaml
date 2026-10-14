@@ -1,0 +1,40 @@
+# @package _global_
+
+defaults:
+  - base
+  - _self_
+
+_target_: rf3.inference_engines.rf3.RF3InferenceEngine
+
+# Registered CaGE weights (see docs/WEIGHTS.md); install with
+# `foundry install run14_confhead`. This is the default because it is a superset of
+# `run14`: the same 402-d conditioned structure model plus the confidence head, which is
+# what `confidence_streams` and `ranking_stream` need (without it they fall back to the
+# main stream). `ckpt_path: run14` selects the structure-only weights instead.
+ckpt_path: run14_confhead
+
+# Transform arguments
+n_recycles: 10
+diffusion_batch_size: 5
+
+# Sampling
+num_steps: 50
+template_noise_scale: 1e-5
+
+# Model arguments
+# Design pLDDT is low by construction (~0.3); early stopping would discard every design.
+early_stopping_plddt_threshold: 0
+# Multi-seed support: null/[] = no seeding, [42] = single seed, [42, 123] = multi-seed
+model_seeds: null
+verbose: false
+raise_if_missing_msa_for_protein_of_length_n: null
+
+# Metrics
+metrics_cfg:
+  # (For confidence outputs)
+  ptm:
+    _target_: rf3.metrics.predicted_error.ComputePTM
+  iptm:
+    _target_: rf3.metrics.predicted_error.ComputeIPTM
+  count_clashing_chains:
+    _target_: rf3.metrics.clashing_chains.CountClashingChains

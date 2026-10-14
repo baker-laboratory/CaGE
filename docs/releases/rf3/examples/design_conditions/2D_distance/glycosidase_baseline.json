@@ -1,0 +1,47 @@
+[
+  {
+    "name": "glycosidase_chunk75_baseline",
+    "components": [
+      {
+        "chain_id": "A",
+        "path": "docs/releases/rf3/examples/design_conditions/2D_distance/all_chunk75_glycosidase_0_model_7_chA.pdb"
+      },
+      {
+        "chain_id": "X",
+        "path": "docs/releases/rf3/examples/design_conditions/2D_distance/all_chunk75_glycosidase_0_model_7_chX.pdb"
+      }
+    ],
+    "inference_engine": "rf3",
+    "seed": 0
+  },
+  {
+    "name": "glycosidase_chunk11_baseline",
+    "components": [
+      {
+        "chain_id": "A",
+        "path": "docs/releases/rf3/examples/design_conditions/2D_distance/all_chunk11_glycosidase_0_model_9_chA.pdb"
+      },
+      {
+        "chain_id": "X",
+        "path": "docs/releases/rf3/examples/design_conditions/2D_distance/all_chunk11_glycosidase_0_model_9_chX.pdb"
+      }
+    ],
+    "inference_engine": "rf3",
+    "seed": 0
+  },
+  {
+    "name": "glycosidase_chunk66_baseline",
+    "components": [
+      {
+        "chain_id": "A",
+        "path": "docs/releases/rf3/examples/design_conditions/2D_distance/all_chunk66_glycosidase_0_model_9_chA.pdb"
+      },
+      {
+        "chain_id": "X",
+        "path": "docs/releases/rf3/examples/design_conditions/2D_distance/all_chunk66_glycosidase_0_model_9_chX.pdb"
+      }
+    ],
+    "inference_engine": "rf3",
+    "seed": 0
+  }
+]

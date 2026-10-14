@@ -1,0 +1,127 @@
+# @package _global_
+
+name: rf3
+project: rf3
+
+tags:
+  # list of tags to add to the run ( & on wandb to easily find & filter runs)
+  - full
+  - design_tasks
+
+defaults:
+  - /design_tasks/all@_all_design_tasks  # Save top level object to add to datasets easily
+  - /design_tasks/monomer_tasks@_monomer_tasks_design_tasks  # Save top level object to add to datasets easily
+  - /design_tasks/_inference_2d_design_tasks@_inference_2d_design_tasks
+  - override /datasets: pdb_and_limited_distillation_design
+  - override /model: rf3
+  - override /trainer: rf3
+  #- override /logger: wandb
+
+  - _self_
+
+# Add design tasks to datasets (defaults to no design tasks at all)
+datasets:
+  masked_token_prob: 0.15
+  masked_token_frac_ex_to_mask: 0.05
+  train:
+    pdb:
+      sub_datasets:
+        interface:
+          dataset:
+            transform:
+              design_tasks: ${_all_design_tasks}
+        pn_unit:
+          dataset:
+            transform:
+              design_tasks: ${_monomer_tasks_design_tasks}
+  mgnify_big_june_2025:  # TODO: do we want to sample design tasks on these datasets?
+    dataset:
+      transform:
+        design_tasks: ${_monomer_tasks_design_tasks}
+  mgnify_small_june_2025:
+    dataset:
+      transform:
+        design_tasks: ${_monomer_tasks_design_tasks}
+  mgnify_nov_2025:
+    dataset:
+      transform:
+        design_tasks: ${_monomer_tasks_design_tasks}
+
+
+# add token recovery to model/loss/metrics
+model:
+  use_cueq_triattn: true
+  use_cueq_trimult: false
+  use_cueq_attnbias: false
+  compile: true
+  net:
+    masked_token_recovery_head:
+      n_classes: 21  # 20 amino acids + mask
+
+    norm_bias:
+      qk: false
+      attention_io: false
+      triangle: false
+      projection: false
+
+    recycler:
+      template_embedder:
+        gate_output_by_distogram_condition: true
+
+    feature_initializer:
+      input_feature_embedder:
+        atom_attention_encoder:
+          c_atom_1d_features: 402
+          atom_1d_features:
+            - ref_pos
+            - ref_charge
+            - ref_mask
+            - ref_element
+            - ref_atom_name_chars
+            - ref_pos_ground_truth
+            #- condition_coordinate_1_atom # TODO: replace this with C_INTCRD
+            - mask_hotspot_1_atom
+            - condition_itype_1_atom
+            - condition_hbond_1_atom
+            - condition_rasa_1_atom
+
+      conditioning_2d_processor:
+        _target_: rf3.conditioning_2d.Conditioning2DProcessor
+        c_out: ${model.net.c_atompair}
+        in_features: 64
+
+    diffusion_module:
+      atom_attention_encoder:
+        c_atom_1d_features: 402
+        normalize_chiral_grads: true
+        atom_1d_features:
+            - ref_pos
+            - ref_charge
+            - ref_mask
+            - ref_element
+            - ref_atom_name_chars
+            - ref_pos_ground_truth
+            # - condition_coordinate_1_atom # TODO: replace this with C_INTCRD
+            - mask_hotspot_1_atom
+            - condition_itype_1_atom
+            - condition_hbond_1_atom
+            - condition_rasa_1_atom
+        conditioning_2d_processor:
+          _target_: rf3.conditioning_2d.Conditioning2DProcessor
+          c_out: ${model.net.c_atompair}
+          in_features: 64
+
+trainer:
+  loss:
+    masked_token_recovery_loss:
+      _target_: rf3.loss.af3_losses.MaskedTokenRecoveryLoss
+      weight: 3e-2
+    diffusion_loss:
+      alpha_hotspot_lddt: 10.0
+      alpha_hotspot_diffusion: 10.0
+    distogram_loss:
+      alpha_hotspot_distogram: 10.0
+  metrics:
+    masked_token_recovery_accuracy:
+      _target_: rf3.metrics.masked_token_recovery.MaskedTokenRecovery
+  prevalidate: False

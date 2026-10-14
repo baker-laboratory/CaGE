@@ -1,0 +1,12 @@
+[
+  {
+    "name": "relative_template_7xli",
+    "components": [
+      {"chain_id": "A", "path": "docs/releases/rf3/examples/templates/7xli_chain_A.cif"},
+      {"chain_id": "B", "path": "docs/releases/rf3/examples/templates/7xli_chain_B.cif"}
+    ],
+    "inference_engine": "rf3",
+    "seed": 0,
+    "relative_template_selection": {"epitope": ["A/*/88", "A/*/90", "A/*/164", "A/*/167", "B/*/64", "B/*/106", "B/*/108"]}
+  }
+]

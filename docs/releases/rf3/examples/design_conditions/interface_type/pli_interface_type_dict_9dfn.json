@@ -1,0 +1,26 @@
+[
+  {
+    "name": "pli_interface_type_dict_9dfn",
+    "components": [
+      {
+        "path": "docs/releases/rf3/examples/9dfn.cif"
+      }
+    ],
+    "inference_engine": "rf3",
+    "seed": 0,
+    "hotspot_selection": [
+      "A/*/38",
+      "A/*/45",
+      "A/*/47",
+      "A/*/110",
+      "A/*/146"
+    ],
+    "interface_type": {
+      "A/*/38": "PLI",
+      "A/*/45": "PLI",
+      "A/*/47": "PLI",
+      "A/*/110": "PLI",
+      "A/*/146": "PLI"
+    }
+  }
+]

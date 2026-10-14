@@ -1,0 +1,64 @@
+########################
+# Datasets
+########################
+
+# Training-split dataframes (atomworks `af3_splits` layout).
+pdb_data_dir: ${oc.env:RF3_PDB_DATA_DIR,/path/to/af3_splits}
+
+# PDB structure mirror used as the loader base_path by the pdb / inverse-folding / val datasets.
+pdb_structure_dir: ${oc.env:PDB_MIRROR_PATH,/path/to/pdb_mirror}
+
+# atomworks CIF-parse cache for the PDB datasets (read+write).
+pdb_cache_dir: ${oc.env:RF3_PDB_CACHE_DIR,/path/to/rf3_cache}
+
+# pocket_miss ("hard validation") val-set dataframe (not distributed with the repo).
+pocket_miss_val_df: ${oc.env:RF3_POCKET_MISS_VAL_DF,/path/to/hard_val.parquet}
+
+# Squashfs mounts holding the distillation structure sets.
+squash_dir: ${oc.env:RF3_SQUASH_DIR,/path/to/squash}
+
+# Dataframe root (parquet/csv).
+df_dir: ${oc.env:RF3_DF_DIR,/path/to/dataframes}
+
+# mgnify_organized MSAs used by the mgnify_nov_2025 distillation dataset.
+mgnify_organized_msa_dir: ${oc.env:RF3_MGNIFY_MSA_DIR,/path/to/mgnify_organized}
+
+# fb monomer distillation dataset
+monomer_distillation_data_dir: ${paths.data.squash_dir}/af2_distillation
+monomer_distillation_parquet_dir: ${oc.env:RF3_MONOMER_DISTILL_DF_DIR,/path/to/af2_distillation_dfs}
+
+mgnify_distillation_data_dir: ${paths.data.squash_dir}/mgnify_distill_rf3
+mgnify_distillation_parquet_dir: ${oc.env:RF3_MGNIFY_DISTILL_DF_DIR,/path/to/mgnify_distill_rf3}
+
+# na complex distill set
+na_complex_distillation_data_dir: ${oc.env:RF3_NA_COMPLEX_DIR,/path/to/na_complex}
+na_complex_distillation_parquet_dir: ${oc.env:RF3_NA_COMPLEX_DF_DIR,/path/to/na_complex_dfs}
+na_complex_df_path: ${paths.data.na_complex_distillation_parquet_dir}/transcription_factor_distillation_rf3.csv
+na_complex_msa_dir: ${paths.data.na_complex_distillation_data_dir}/a3m
+
+# disorder distill set
+disorder_distill_parquet_dir: ${oc.env:RF3_DISORDER_DISTILL_DF_DIR,/path/to/disorder_distill}
+
+# RNA monomer distillation
+rna_distillation_parquet_dir: ${oc.env:RF3_RNA_DISTILL_DIR,/path/to/rna_distillation}
+rna_distillation_data_dir: ${paths.data.rna_distillation_parquet_dir}
+rna_distillation_df_path: ${paths.data.rna_distillation_parquet_dir}/rna_distillation_filtered_df.parquet
+rna_monomer_msa_dir: ${oc.env:RF3_RNA_MSA_DIR,/path/to/rna_monomer_msas}
+
+########################
+# MSAs
+########################
+
+# path(s) to search for protein MSAs (for PDB datasets); empty = no MSAs on disk.
+# e.g., [{"dir": "/path/to/msas", "extension": ".a3m.gz", "directory_depth": 2}]
+protein_msa_dirs: []
+
+# path(s) to search for RNA MSAs
+rna_msa_dirs: []
+
+########################
+# Misc
+########################
+
+# path to save examples that fail during the Transform pipeline (null = do not save)
+failed_examples_dir: null

@@ -1,0 +1,16 @@
+[
+  {
+    "name": "ligand_rasa_5hkn_auto",
+    "components": [{"path": "docs/releases/rf3/examples/5hkn_from_file.cif"}],
+    "inference_engine": "rf3",
+    "seed": 0,
+    "rasa_selection": ["C/60C/101"]
+  },
+  {
+    "name": "ligand_rasa_5hkn_explicit",
+    "components": [{"path": "docs/releases/rf3/examples/5hkn_from_file.cif"}],
+    "inference_engine": "rf3",
+    "seed": 0,
+    "rasa_selection": {"C/60C/101": "BURIED"}
+  }
+]
