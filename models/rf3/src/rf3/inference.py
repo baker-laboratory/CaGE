@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 
-import pathlib
-
 import hydra
 import rootutils
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
+from rf3._config import get_rf3_config_dir
 
 from foundry.utils.logging import suppress_warnings
 
@@ -18,18 +17,7 @@ except (FileNotFoundError, OSError):
     pass
 
 
-def _rf3_configs_dir() -> str:
-    """rf3 configs, whether installed beside the package or in the source tree."""
-    here = pathlib.Path(__file__).resolve().parent
-    for candidate in (here / "configs", here.parents[1] / "configs"):
-        if candidate.is_dir():
-            return str(candidate)
-    raise FileNotFoundError(
-        "rf3 configs not found next to the package or in the source tree"
-    )
-
-
-_config_path = _rf3_configs_dir()
+_config_path = get_rf3_config_dir()
 
 
 @hydra.main(

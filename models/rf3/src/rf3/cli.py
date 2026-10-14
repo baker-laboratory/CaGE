@@ -1,7 +1,6 @@
-from pathlib import Path
-
 import typer
 from hydra import compose, initialize_config_dir
+from rf3._config import get_rf3_config_dir
 
 app = typer.Typer(pretty_exceptions_enable=False)
 
@@ -22,11 +21,7 @@ def fold(
 
         configure_minimal_inference_logging()
 
-    # Find the RF3 configs directory relative to this file
-    # This file is at: models/rf3/src/rf3/cli.py
-    # Configs are at: models/rf3/configs/
-    rf3_package_dir = Path(__file__).parent.parent.parent  # Go up to models/rf3/
-    config_path = str(rf3_package_dir / "configs")
+    config_path = get_rf3_config_dir()
 
     # Get all arguments
     args = ctx.params.get("args", []) + ctx.args
