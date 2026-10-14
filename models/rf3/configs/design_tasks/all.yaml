@@ -1,0 +1,195 @@
+# All available design tasks with default frequencies.
+# Datasets can inherit this and override individual task frequencies as needed.
+#
+# `frequency` is a relative sampling weight; the enabled tasks below sum to 100, so each
+# weight also reads directly as a percentage of training examples.
+#
+# The four 2D atom-pair-distance tasks (C_DIS / `condition_distance_2_atom`) are ENABLED,
+# at frequency 1.0 each. They are what trains the condition exposed at inference time as
+# `distance_template_selection`. Effective per-example condition rates under this file:
+#
+#   hotspot        (C_HOT)   15 %    ppi_hotspot
+#   interface type (C_ITYPE) 15 %    ppi_hotspot, via annotate_interface_type: true
+#   atom-pair dist (C_DIS)    4 %    the four tasks below, 1.0 each
+#   RASA           (C_RAS)    2.4 %  0.6 x 4 %, from the distance tasks' rasa_kwargs
+#   hbond          (C_HB)     0.4 %  (0.0 + 0.0 + 0.2 + 0.2) x 1 %, their hbond_kwargs
+#
+# RASA and hbond count only the distance tasks because `apply_design_task_modifiers` --
+# the only reader of rasa_kwargs / hbond_kwargs -- is called exclusively from
+# rf3/data/design_tasks/motif_scaffolding.py; see the note on ppi_hotspot below.
+
+unconditional:
+  frequency: 81.0
+  transform:
+    _target_: rf3.data.design_tasks.base.UnconditionalTask
+
+# tip_atom_active_site:
+#   frequency: 0.0
+#   transform:
+#     _target_: rf3.data.design_tasks.motif_scaffolding.TipAtomActiveSiteTask
+#     tip_atom_rasa_threshold: 0.2
+#     min_tip_atoms: 2
+#     max_tip_atoms: 15
+#     min_protein_length: 50
+#     global_design_task_kwargs:
+#       rasa_kwargs:
+#         p_add_rasa_condition: 0.6
+#       hbond_kwargs:
+#         p_add_hbond_condition: 0.0
+
+ppi_hotspot:
+  frequency: 15.0
+  transform:
+    _target_: rf3.data.design_tasks.ppi.PPIHotspot
+    max_hotspots_frac_to_provide: 0.1
+    hotspot_max_distance: 4.5
+    # Writes C_ITYPE (PPI / PLI / PNA) on the sampled hotspot atoms only, so interface
+    # type has exactly this task's frequency and never occurs without hotspots.
+    annotate_interface_type: true
+    # INERT: kept so this file still matches the recipe the released weights were trained
+    # with, but PPIHotspot.forward never calls `apply_design_task_modifiers`, the only
+    # reader of rasa_kwargs / hbond_kwargs. These two probabilities have no effect here --
+    # do not count them when computing RASA / hbond training frequencies.
+    global_design_task_kwargs:
+      rasa_kwargs:
+        p_add_rasa_condition: 0.6
+      hbond_kwargs:
+        p_add_hbond_condition: 0.0
+
+
+# ---------------------------------------------------------------------------
+# C_DIS tasks: the 2D atom-pair-distance condition, enabled at 1.0 each (4 % total).
+# rasa_kwargs / hbond_kwargs below are live -- these tasks do call
+# `apply_design_task_modifiers`.
+# ---------------------------------------------------------------------------
+tip_atom_partial_ligand_distance:
+  frequency: 1.0
+  transform:
+    _target_: rf3.data.design_tasks.motif_scaffolding.TipAtomPartialLigandDistanceTask
+    n_max_ligands: 3
+    n_hops_expected_ligand: 5
+    n_min_residues: 2
+    n_max_residues: 14
+    n_hops_expected_tip_atom: 3
+    p_seq_conditioned: 0.5
+    p_knockout_seq: 0.3
+    p_knockout_dist: 0.5
+    knockout_dist_min_fraction: 0.1
+    knockout_dist_max_fraction: 0.3
+    lig_lig_potential_cutoff: 10.0
+    max_dist_cutoff: 10.0
+    global_design_task_kwargs:
+      rasa_kwargs:
+        p_add_rasa_condition: 0.6
+      hbond_kwargs:
+        p_add_hbond_condition: 0.0
+
+tip_atom_distance:
+  frequency: 1.0
+  transform:
+    _target_: rf3.data.design_tasks.motif_scaffolding.TipAtomDistanceTask
+    n_min_residues: 2
+    n_max_residues: 14
+    p_tip_atom: 0.5
+    n_hops_expected: 3
+    p_seq_conditioned: 0.5
+    p_knockout_seq: 0.9
+    p_knockout_dist: 0.9
+    knockout_dist_min_fraction: 0.1
+    knockout_dist_max_fraction: 0.3
+    global_design_task_kwargs:
+      rasa_kwargs:
+        p_add_rasa_condition: 0.6
+      hbond_kwargs:
+        p_add_hbond_condition: 0.0
+
+partial_ligand_distance:
+  frequency: 1.0
+  transform:
+    _target_: rf3.data.design_tasks.motif_scaffolding.PartialLigandDistanceTask
+    min_coverage_fraction: 0.0
+    max_coverage_fraction: 1.0
+    p_knockout_dist: 0.8
+    knockout_dist_min_fraction: 0.1
+    knockout_dist_max_fraction: 0.3
+    global_design_task_kwargs:
+      rasa_kwargs:
+        p_add_rasa_condition: 0.6
+      hbond_kwargs:
+        p_add_hbond_condition: 0.2
+
+motif_scaffold_distance:
+  frequency: 1.0
+  transform:
+    _target_: rf3.data.design_tasks.motif_scaffolding.MotifScaffoldDistanceTask
+    min_tokens_per_motif: 1
+    max_tokens_per_motif: 50
+    min_coverage_fraction: 0.05
+    max_coverage_fraction: 1.0
+    inter_motif_distance_p: 0.2
+    p_knockout_dist: 0.8
+    knockout_dist_min_fraction: 0.1
+    knockout_dist_max_fraction: 0.9
+    global_design_task_kwargs:
+      rasa_kwargs:
+        p_add_rasa_condition: 0.6
+      hbond_kwargs:
+        p_add_hbond_condition: 0.2
+
+# ---------------------------------------------------------------------------
+# C_CRD tasks that should really be C_INTCRD. Opt out for now
+# ---------------------------------------------------------------------------
+# tip_atom:
+#   frequency: 0.0
+#   transform:
+#     _target_: rf3.data.design_tasks.motif_scaffolding.TipAtomTask
+#     min_residues: 2
+#     max_residues: 8
+#     p_tip_atom: 0.5
+#     n_hops_expected: 3
+#     global_design_task_kwargs:
+#       rasa_kwargs:
+#         p_add_rasa_condition: 0.6
+#       hbond_kwargs:
+#         p_add_hbond_condition: 0.0
+
+# partial_ligand:
+#   frequency: 0.0
+#   transform:
+#     _target_: rf3.data.design_tasks.motif_scaffolding.PartialLigandTask
+#     min_coverage_fraction: 0.0
+#     max_coverage_fraction: 1.0
+#     global_design_task_kwargs:
+#       rasa_kwargs:
+#         p_add_rasa_condition: 0.6
+#       hbond_kwargs:
+#         p_add_hbond_condition: 0.0
+
+# tip_atom_partial_ligand:
+#   frequency: 0.0
+#   transform:
+#     _target_: rf3.data.design_tasks.motif_scaffolding.TipAtomPartialLigandTask
+#     n_max_ligands: 3
+#     n_hops_expected_ligand: 5
+#     n_max_residues: 8
+#     n_hops_expected_tip_atom: 1
+#     tip_atom_scaling_factor: 1.5
+#     global_design_task_kwargs:
+#       rasa_kwargs:
+#         p_add_rasa_condition: 0.6
+#       hbond_kwargs:
+#         p_add_hbond_condition: 0.0
+
+# motif_scaffold:
+#   frequency: 0.0
+#   transform:
+#     _target_: rf3.data.design_tasks.motif_scaffolding.MotifScaffoldTask
+#     min_tokens_per_motif: 1
+#     max_tokens_per_motif: 50
+#     min_coverage_fraction: 0.05
+#     max_coverage_fraction: 1.0
+#     global_design_task_kwargs:
+#       rasa_kwargs:
+#         p_add_rasa_condition: 0.6
+#       hbond_kwargs:
+#         p_add_hbond_condition: 0.0

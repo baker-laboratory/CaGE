@@ -1,0 +1,179 @@
+[
+  {
+    "name": "glycosidase_chunk75_distance_explicit",
+    "components": [
+      {
+        "chain_id": "A",
+        "path": "docs/releases/rf3/examples/design_conditions/2D_distance/all_chunk75_glycosidase_0_model_7_chA.pdb"
+      },
+      {
+        "chain_id": "X",
+        "path": "docs/releases/rf3/examples/design_conditions/2D_distance/all_chunk75_glycosidase_0_model_7_chX.pdb"
+      }
+    ],
+    "inference_engine": "rf3",
+    "seed": 0,
+    "template_selection": [
+      "A/TYR/48",
+      "A/GLU/31",
+      "A/TYR/50",
+      "A/ARG/97",
+      "A/GLN/99",
+      "A/GLU/113"
+    ],
+    "distance_template_selection": [
+      {
+        "atoms": [
+          "A/TYR/48",
+          "A/GLU/31",
+          "A/TYR/50",
+          "A/ARG/97",
+          "A/GLN/99",
+          "A/GLU/113"
+        ]
+      },
+      {
+        "atoms": [
+          "X/*/*/O21",
+          "A/GLU/31/CB",
+          "A/ARG/97/CB"
+        ],
+        "distance": [
+          [
+            0.0,
+            5.52,
+            5.92
+          ],
+          [
+            5.52,
+            0.0,
+            8.75
+          ],
+          [
+            5.92,
+            8.75,
+            0.0
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "name": "glycosidase_chunk11_distance_explicit",
+    "components": [
+      {
+        "chain_id": "A",
+        "path": "docs/releases/rf3/examples/design_conditions/2D_distance/all_chunk11_glycosidase_0_model_9_chA.pdb"
+      },
+      {
+        "chain_id": "X",
+        "path": "docs/releases/rf3/examples/design_conditions/2D_distance/all_chunk11_glycosidase_0_model_9_chX.pdb"
+      }
+    ],
+    "inference_engine": "rf3",
+    "seed": 0,
+    "template_selection": [
+      "A/TYR/36",
+      "A/GLU/32",
+      "A/TYR/73",
+      "A/ARG/16",
+      "A/GLN/77",
+      "A/GLU/5"
+    ],
+    "distance_template_selection": [
+      {
+        "atoms": [
+          "A/TYR/36",
+          "A/GLU/32",
+          "A/TYR/73",
+          "A/ARG/16",
+          "A/GLN/77",
+          "A/GLU/5"
+        ]
+      },
+      {
+        "atoms": [
+          "X/*/*/C22",
+          "A/GLN/77/CB",
+          "A/GLU/5/CB"
+        ],
+        "distance": [
+          [
+            0.0,
+            5.21,
+            7.3
+          ],
+          [
+            5.21,
+            0.0,
+            11.53
+          ],
+          [
+            7.3,
+            11.53,
+            0.0
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "name": "glycosidase_chunk66_distance_explicit",
+    "components": [
+      {
+        "chain_id": "A",
+        "path": "docs/releases/rf3/examples/design_conditions/2D_distance/all_chunk66_glycosidase_0_model_9_chA.pdb"
+      },
+      {
+        "chain_id": "X",
+        "path": "docs/releases/rf3/examples/design_conditions/2D_distance/all_chunk66_glycosidase_0_model_9_chX.pdb"
+      }
+    ],
+    "inference_engine": "rf3",
+    "seed": 0,
+    "template_selection": [
+      "A/TYR/79",
+      "A/GLU/124",
+      "A/TYR/90",
+      "A/ARG/11",
+      "A/GLN/94",
+      "A/GLU/39"
+    ],
+    "distance_template_selection": [
+      {
+        "atoms": [
+          "A/TYR/79",
+          "A/GLU/124",
+          "A/TYR/90",
+          "A/ARG/11",
+          "A/GLN/94",
+          "A/GLU/39"
+        ]
+      },
+      {
+        "atoms": [
+          "X/*/*/C22",
+          "A/GLN/94/CB",
+          "A/GLU/39/CB"
+        ],
+        "distance": [
+          [
+            0.0,
+            3.71,
+            7.3
+          ],
+          [
+            3.71,
+            0.0,
+            10.3
+          ],
+          [
+            7.3,
+            10.3,
+            0.0
+          ]
+        ]
+      }
+    ]
+  }
+]

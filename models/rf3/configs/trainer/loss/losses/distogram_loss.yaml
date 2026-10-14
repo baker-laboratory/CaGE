@@ -1,0 +1,3 @@
+_target_: rf3.loss.af3_losses.DistogramLoss
+weight: 3e-2
+alpha_hotspot_distogram: 0.0

@@ -1,0 +1,65 @@
+# AF3 dataset configuration with monomer distillation
+
+defaults:
+  - base
+  # The @ symbol specifies the tree under which the item will be attached to the config
+  - train/pdb/train_interface@train.pdb.sub_datasets.interface
+  - train/pdb/train_pn_unit@train.pdb.sub_datasets.pn_unit
+  - train/distill/mgnify_big_june_2025@train.mgnify_big_june_2025
+  - train/distill/mgnify_small_june_2025@train.mgnify_small_june_2025
+  - train/distill/mgnify_nov_2025@train.mgnify_nov_2025
+  - train/distill/na_complex@train.na_complex_distillation
+  - train/distill/disorder@train.disorder_distillation
+  - train/distill/rna_monomer@train.rna_monomer_distillation
+  - val/af3_validation@val.af3_validation
+  - val/af3_validation@val.masked_token_recovery
+  - val/af3_ab_set@val.af3_ab_set
+  - _self_
+
+# Dataloading pipeline to use
+pipeline_target: rf3.data.pipelines.build_af3_transform_pipeline
+
+# masked token recovery set is small proteins only
+val:
+  masked_token_recovery:
+    dataset:
+      filters:
+        - "pdb_id not in ['8ckl']"
+        - "n_tokens_total < 350"
+      transform:
+        masked_token_prob: ${datasets.masked_token_prob}
+        masked_token_frac_ex_to_mask: 1.0
+
+# Dataset weighting
+train:
+  pdb:
+    probability: 0.50
+    sub_datasets:
+      interface:
+        weights:
+          alphas:
+            a_prot: 3.0
+            a_nuc: 1.0                                                                      
+            a_ligand: 1.0
+            a_loi: 5.0
+      pn_unit:
+        weights:
+          alphas:
+            a_prot: 3.0
+            a_nuc: 1.0
+            a_ligand: 1.0
+            a_loi: 5.0
+
+  mgnify_nov_2025:
+    probability: 0.40
+  mgnify_big_june_2025:
+    probability: 0.07
+  mgnify_small_june_2025:
+    probability: 0.01
+  disorder_distillation:
+    probability: 0.01
+  rna_monomer_distillation:
+    probability: 0.005
+  na_complex_distillation:
+    probability: 0.005
+

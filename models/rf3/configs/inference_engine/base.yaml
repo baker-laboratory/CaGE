@@ -1,0 +1,127 @@
+# @package _global_
+
+defaults:
+  - /hydra: no_logging
+
+# Parameters for RF3InferenceEngine.__init__()
+ckpt_path: ???
+num_nodes: 1
+devices_per_node: 1
+compress_outputs: false
+
+# Parameters for RF3InferenceEngine.run()
+inputs: ???
+out_dir: ???
+dump_predictions: true
+# Per sample, write {seed-S_sample-I}/trajectory/: noisy x_t and x0 estimates per diffusion
+# step (plus per-stream and guided x0 under CFG), all aligned to the final prediction.
+dump_trajectories: false
+one_model_per_file: false
+annotate_b_factor_with_plddt: true
+sharding_pattern: null
+skip_existing: false
+template_selection: null
+relative_template_selection: null
+ground_truth_conformer_selection: null
+# The five CaGE design-task conditions, all trained in the released `run14` weights.
+hotspot_selection: null
+# One of PPI / PLI / PNA (case-sensitive), or a {selection: label} dict. A bare string is
+# written only onto the atoms picked by hotspot_selection, so it does nothing without one;
+# the dict form writes onto its own selections and is therefore the form that survives
+# per-condition CFG stream isolation.
+interface_type: null
+rasa_selection: null
+hbond_selection: null
+distance_template_selection: null
+cyclic_chains: []
+keep_all: true
+
+# Classifier-free guidance over the eight axes in CFG_CONDITION_FIELDS: template,
+# relative_template, ground_truth_conformer, hotspot, interface_type, rasa, hbond,
+# distance_template. Off by default, which is identical to a plain conditional run.
+# docs/DESIGN_CONDITIONS.md is the reference for what the scales mean.
+inference_classifier_free_guidance: false
+# Float: one stream carrying every condition the input selects, at this scale.
+# Dict keyed by axis name: one stream per named axis, each at its own scale, with the main
+# stream unconditional -- this is how one condition is swept in isolation, e.g.
+#   'inference_cfg_scale={distance_template: 3.0}'
+# Quote it so the shell leaves the braces and commas alone, and use no Hydra +/++ prefix:
+# the key already exists, and the bare form is what catches a misspelled axis name, which
+# ++ would silently create instead. The dict form drops every axis it does not name.
+# Naming an axis the input does not select warns; naming one that does not exist raises.
+inference_cfg_scale: 1.0
+# Restrict CFG to diffusion steps whose noise level t_hat is in [sigma_min, sigma_max].
+# Defaults guide every step. Under the default schedule t_hat runs ~2560 (first step) down
+# to ~0.006 (last), so e.g. sigma_min=1 sigma_max=300 guides only the middle band.
+# null max = +inf.
+inference_cfg_sigma_min: 0.0
+inference_cfg_sigma_max: null
+
+# Motif guidance -- NOT one of the design conditions above, and not a CFG axis. Where
+# distance_template is a trained condition that enters the trunk, this is an untrained
+# projection applied to x0 at every diffusion step: it Kabsch-fits a reference motif onto
+# the current prediction's anchor atoms and interpolates the motif atoms toward it. It
+# never reaches the denoiser, is never featurized and never atomizes anything, so it
+# cannot be named in inference_cfg_scale. docs/DESIGN_CONDITIONS.md is the reference.
+#
+# Groups of atoms to pull, each rigid-aligned independently. Selections are ordinary
+# AtomSelectionStack queries, so 'A/HIS/47/NE2' is one atom, 'A/*/38' a whole residue and
+# 'B' a whole chain. `atoms` is pulled; the optional `anchor` is the subset driving that
+# group's Kabsch fit and defaults to all of the group's atoms. Use this explicit form:
+#   'motif_guidance_selection=[{name: catalytic_site, atoms: [A/*/38, A/*/45, A/*/47, A/*/110], anchor: [A/CYS/38/SG, A/CYS/45/SG, A/HIS/47/NE2, A/ASN/110/OD1]}, {name: cofactor, atoms: [B]}]'
+# (runnable against docs/releases/rf3/examples/9dfn.cif). Keep the whole override on ONE
+# line -- Hydra lexes it as a single token and rejects a newline inside it.
+#
+# Give every group at least 3 anchor atoms that are NOT collinear, or the Kabsch rotation
+# is underdetermined and the motif lands in an arbitrary, seed-dependent orientation.
+# Resolution warns when it detects either case.
+#
+# A bare string or flat list is also accepted, as one group anchored on its 4-field
+# selections, for compatibility with task files written against the original
+# implementation. It is easy to under-anchor that way; prefer the explicit form.
+motif_guidance_selection: null
+# Where the target coordinates come from. Default (null) is the input's own coordinates.
+# Set a path, or a list of {path, chain_id}, to pull toward a different structure -- the
+# only way to decouple guidance from whatever template_selection already conditions on.
+motif_guidance_reference: null
+# Explicit opt-in. A selection alone never arms guidance, so an input that carries one
+# still folds unguided and stays comparable with its own baseline; enabling this without
+# a selection raises.
+inference_motif_guidance: false
+# Fraction of the motif-atom -> aligned-target gap closed per inner step. Dimensionless:
+# there is no noise-level weighting and no clipping. The default is an exact hard snap,
+# NOT a soft pull; lower it to leave the denoiser room to relax neighbouring bonds.
+# mu=0 is off, not weak: the gate still evaluates and still logs arming.
+inference_motif_guidance_mu: 1.0
+inference_motif_guidance_inner_steps: 1
+# A diffusion sample arms once its own anchor RMSD (max over groups) falls below this,
+# and stays armed. Arming is per sample, not per batch: the engine rolls out several
+# samples per trunk pass and each has its own noise draw and its own random frame.
+inference_motif_guidance_rmsd_threshold: 5.0
+# Active window on the step fraction t_norm, which runs 1.0 (first step) -> ~0.0 (last).
+# The default leaves the noisier first half unguided; raise t_low to leave the final
+# steps to the denoiser. Refused under partial diffusion, whose truncated schedule would
+# renormalize t_norm onto a different noise range.
+inference_motif_guidance_t_high: 0.5
+inference_motif_guidance_t_low: 0.0
+# Which trunk streams to score with the confidence head. Anything beyond `main` needs a
+# checkpoint that has one -- asking without it raises. All streams score the same rolled-out
+# structure; what changes is the trunk representation the head conditions on. Costs one
+# extra confidence-head pass per stream per diffusion sample, no extra trunk passes. Each
+# stream gets its own ptm / iptm / has_clash / ranking_score, which need metrics enabled --
+# with `metrics_cfg=null` no stream carries them.
+#   main        the stream actually rolled out: the *unconditional* input whenever guidance
+#               streams were built, the conditional one otherwise.
+#   conditions  one per CFG guidance stream, named after the condition.
+#   merged      trunk features extrapolated the way CFG combines scores. Closest to "the
+#               guided sample", but the head never saw extrapolated features in training,
+#               so treat it as indicative.
+# docs/DESIGN_CONDITIONS.md names the output file each stream lands in.
+confidence_streams: [main]
+# Which scored stream orders samples in {example_id}_ranking_scores.csv and picks the
+# model copied to the top level. Defaults to `merged` -- under CFG that is the stream
+# describing the guided sample, whereas `main` describes the unconditional one. Falls
+# back to `main` for any sample where the requested stream was not produced (guidance
+# off, `merged` not in confidence_streams, ...), so the default is a no-op unless you
+# ask for the stream. The stream actually used is recorded per row in the CSV.
+ranking_stream: merged

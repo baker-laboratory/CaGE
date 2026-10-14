@@ -1,0 +1,9 @@
+defaults:
+  - base
+
+dataset:
+  name: hard_validation
+  data: ${paths.data.pocket_miss_val_df}
+  loader:
+    _target_: atomworks.ml.datasets.loaders.create_loader_with_interfaces_and_pn_units_to_score
+    base_path: ${paths.data.pdb_structure_dir}

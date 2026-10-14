@@ -1,0 +1,17 @@
+all_atom_lddt:
+  _target_: rf3.metrics.lddt.AllAtomLDDT
+  log_lddt_for_every_batch: True
+plddt:
+  _target_: rf3.metrics.lddt.ReportMeanPLDDT
+pae:
+  _target_: rf3.metrics.predicted_error.ReportMeanPAEandAE
+#chiral_loss:
+#  _target_: rf3.metrics.chiral.ChiralLoss
+#unresolved_rasa:
+#  _target_: rf3.metrics.rasa.UnresolvedRegionRASA
+#ptm:
+#  _target_: rf3.metrics.predicted_error.ComputePTM
+#iptm:
+#  _target_: rf3.metrics.predicted_error.ComputeIPTM
+#count_clashing_chains:
+#  _target_: rf3.metrics.clashing_chains.CountClashingChains

@@ -1,0 +1,13 @@
+defaults:
+  - base@dataset
+  - _self_
+
+probability: 1.0
+
+dataset:
+  name: pdb_diso_distillation
+  data: ${paths.data.df_dir}/disorder/disorder_distill_noclashing.csv
+
+  transform:
+    protein_msa_dirs: ${paths.data.protein_msa_dirs}
+    rna_msa_dirs: ${paths.data.rna_msa_dirs}

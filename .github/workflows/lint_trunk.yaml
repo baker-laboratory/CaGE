@@ -1,0 +1,35 @@
+name: lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: ruff (check code style)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: 'pip'
+      - name: Extract ruff version from pyproject.toml
+        run: |
+          echo "RUFF_VERSION=$(grep 'ruff==' pyproject.toml | sed 's/.*ruff==\([0-9.]*\).*/\1/')" >> $GITHUB_ENV
+      - name: Install ruff
+        run: pip install ruff==${{ env.RUFF_VERSION }}
+      # Scoped to the paths CaGE owns and keeps formatted. models/rf3/src and
+      # src/foundry carry the upstream foundry formatting and are deliberately left
+      # comparable with it, so they are not part of this gate (see PROVENANCE.md).
+      - name: Ruff format
+        run: ruff format --diff tests models/rf3/tests models/rf3/scripts
+      - name: Ruff check
+        run: ruff check tests models/rf3/tests models/rf3/scripts

@@ -1,0 +1,42 @@
+# @package _global_
+# run14 + a 2% inverse-folding train subtask, with an inverse_folding val set
+# and per-epoch recovery confusion matrices.
+
+defaults:
+  - rf3_run14
+  - override /datasets: pdb_and_limited_distillation_invfold
+  - _self_
+
+tags:
+  - full
+  - inverse_folding
+
+# Real reference conformer to the diffusion encoder only; pairformer stays blind for masked tokens.
+datasets:
+  provide_diffusion_ref_copy: true
+
+model:
+  net:
+    diffusion_module:
+      atom_attention_encoder:
+        ref_pos_feature_name: ref_pos_diff
+        atom_1d_features:
+          - ref_pos_diff
+          - ref_charge_diff
+          - ref_mask_diff
+          - ref_element_diff
+          - ref_atom_name_chars_diff
+          - ref_pos_ground_truth
+          - mask_hotspot_1_atom
+          - condition_itype_1_atom
+          - condition_hbond_1_atom
+          - condition_rasa_1_atom
+
+trainer:
+  loss:
+    distogram_loss:
+      alpha_hotspot_distogram: 0.0
+    diffusion_loss:
+      alpha_hotspot_lddt: 0.0
+      alpha_hotspot_diffusion: 0.0
+

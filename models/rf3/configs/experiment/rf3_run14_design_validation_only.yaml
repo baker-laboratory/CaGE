@@ -1,0 +1,35 @@
+# @package _global_
+#
+# rf3_run14, but only design_validation runs during prevalidate / validate.
+# All other val sets inherited from `pdb_and_limited_distillation` are set to
+# null so that `assemble_val_loader_dict` skips them
+# (see foundry/utils/datasets.py: it skips entries where the value is None).
+#
+# Usage:
+#   python models/rf3/src/rf3/train.py experiment=rf3_run14_design_validation_only \
+#       ++trainer.prevalidate=True \
+#       ++trainer.limit_val_batches=4 \
+#       ++trainer.max_epochs=1
+
+defaults:
+  - rf3_run14
+  - _self_
+
+datasets:
+  val:
+    af3_validation: null
+    masked_token_recovery: null
+    af3_ab_set: null
+    pocket_miss: null
+    design_validation:
+      dataset:
+        # Replicates the filter list from pdb_and_limited_distillation.yaml,
+        # plus extra exclusions for examples that crash design-task data preprocessing hbond conditioning
+        filters:
+          - "pdb_id not in ['8ckl', '9ba3']"
+          - "interfaces_to_score.str.contains('protein-ligand')"
+          - "pdb_id.str[-1].isin(['0','1','2','3'])"
+
+# Make sure we actually run prevalidate when this experiment is selected.
+trainer:
+  prevalidate: True

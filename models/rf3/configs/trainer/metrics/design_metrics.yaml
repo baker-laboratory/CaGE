@@ -1,0 +1,32 @@
+ppi_metrics:
+  _target_: rf3.metrics.design_metrics.PPIMetrics
+  distance_cutoff: 4.5
+
+
+hbond_metrics:
+  _target_: rf3.metrics.design_metrics.HbondMetrics
+  cutoff_HA_dist: 2.2
+  cutoff_DA_distance: 3.2
+  enabled: True
+
+rasa_adherence:
+  _target_: rf3.metrics.design_metrics.RasaAdherenceMetric
+
+pairwise_distance_mae:
+  _target_: rf3.metrics.design_gt_motif_metrics.MotifComparisonMetric
+  metric_type: dist_mae
+  metric_kwargs:
+    dist_mae:
+      extra_distance_types:
+        - tip_atom
+        - inter_chain
+        - intra_chain
+        # - intra_chain_protein # this will make sense when we have ppi dists
+
+motif_rmsd:
+  _target_: rf3.metrics.design_gt_motif_metrics.MotifComparisonMetric
+  metric_type: rmsd
+  align_masks:
+    - is_motif_atom
+  subset_masks:
+    - is_motif_atom

@@ -1,0 +1,9 @@
+defaults:
+  - base
+
+dataset:
+  name: af3_validation
+  data: ${paths.data.df_dir}/pdb/ab/entry_level_val_df_with_ig_pn_unit_iid.parquet
+  loader:
+    _target_: atomworks.ml.datasets.loaders.create_loader_with_interfaces_and_pn_units_to_score
+    base_path: ${paths.data.pdb_structure_dir}

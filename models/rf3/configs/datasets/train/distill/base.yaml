@@ -1,0 +1,63 @@
+# Base configuration for all distillation datasets.
+# Individual configs inherit via: defaults: [- base]
+
+_target_: atomworks.ml.datasets.pandas_dataset.PandasDataset
+name: ???
+data: ???
+id_column: example_id
+
+columns_to_load:
+  - example_id
+  - path
+  
+loader:
+  _target_: atomworks.ml.datasets.loaders.create_base_loader
+  example_id_colname: example_id
+  path_colname: path
+  assembly_id_colname: None
+  parser_args:
+    cache_dir: null
+    add_missing_atoms: False  # Default for distillation
+    save_to_cache: False  # Default for distillation
+    load_from_cache: False  # Default for distillation
+    hydrogen_policy: remove
+
+transform:
+  _target_: ${datasets.pipeline_target}
+  is_inference: false
+  n_recycles: ${datasets.n_recycles_train}
+  crop_size: ${datasets.crop_size}
+  n_msa: ${datasets.n_msa}
+  diffusion_batch_size: ${datasets.diffusion_batch_size_train}
+  max_atoms_in_crop: ${datasets.max_atoms_in_crop}
+  
+  # These values should be set per-dataset
+  crop_contiguous_probability: 0.25
+  crop_spatial_probability: 0.75
+  
+  run_confidence_head: ${datasets.run_confidence_head}
+  take_first_chiral_subordering: ${datasets.take_first_chiral_subordering}
+  use_element_for_atom_names_of_atomized_tokens: ${datasets.use_element_for_atom_names_of_atomized_tokens}
+  missing_atom_behavior: ${datasets.missing_atom_behavior}
+  atomization_prob: ${datasets.atomization_prob}
+  ligand_dropout_prob: ${datasets.ligand_dropout_prob}
+  p_unconditional: ${datasets.p_unconditional}
+  add_residue_is_paired_feature: ${datasets.add_residue_is_paired_feature}
+  
+  # Distillation-specific EDM parameters
+  pmean: ${datasets.pmean_distill}
+  pstd: ${datasets.pstd_distill}
+
+  # Link noise scaling to the model's sigma_data so the two cannot drift.
+  sigma_data: ${model.net.diffusion_module.sigma_data}
+
+  # Do not mirror distill
+  mirror_prob: 0.0
+
+  masked_token_prob: ${datasets.masked_token_prob}
+  masked_token_frac_ex_to_mask: ${datasets.masked_token_frac_ex_to_mask}
+  provide_diffusion_ref_copy: ${datasets.provide_diffusion_ref_copy}
+
+  p_atomize_disulfide: ${datasets.p_atomize_disulfide} # In reality, distillation does not have annotated disulfides, so none will be atomized
+  check_chirality: ${datasets.check_chirality}
+  chirality_swap_pdb_codes: ${datasets.chirality_swap_pdb_codes}

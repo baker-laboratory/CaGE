@@ -1,0 +1,20 @@
+[
+  {
+    "name": "motif_guidance_catalytic_site_9dfn",
+    "components": [{"path": "docs/releases/rf3/examples/9dfn.cif"}],
+    "inference_engine": "rf3",
+    "seed": 0,
+    "inference_motif_guidance": true,
+    "motif_guidance_selection": [
+      {
+        "name": "catalytic_site",
+        "atoms": ["A/*/38", "A/*/45", "A/*/47", "A/*/110"],
+        "anchor": ["A/CYS/38/SG", "A/CYS/45/SG", "A/HIS/47/NE2", "A/ASN/110/OD1"]
+      },
+      {
+        "name": "cofactor",
+        "atoms": ["B"]
+      }
+    ]
+  }
+]

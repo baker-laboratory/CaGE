@@ -1,0 +1,48 @@
+# AF3 dataset with monomer distillation + design-task validation sets.
+# Adds the conditioning/design validation sets on top of the design-free base
+# (pdb_and_limited_distillation). Requires the global `_inference_2d_design_tasks`
+# key to be provided by the experiment config (see rf3_run14.yaml defaults).
+
+defaults:
+  - pdb_and_limited_distillation
+  - val/pocket_miss@val.pocket_miss
+  - val/af3_validation@val.design_validation
+  - _self_
+
+val:
+  pocket_miss:
+    dataset:
+      filters:
+        - "n_tokens_total < 400"
+      transform:
+        p_unconditional: 1.0
+        design_tasks:
+          pl_hotspot:
+            frequency: 100
+            transform:
+              _target_: rf3.data.design_tasks.ppi.PPIHotspot
+              max_hotspots_frac_to_provide: 0.2
+              hotspot_max_distance: 4.5
+              annotate_interface_type: true
+              enable_during_validation: true
+          unconditional:
+            frequency: 0.001
+            transform:
+              _target_: rf3.data.design_tasks.base.UnconditionalTask
+
+  # ~11% of full af3_val set
+  design_validation:
+    dataset:
+      filters:
+        - "pdb_id not in ['8ckl', '9ba3']"
+        - "interfaces_to_score.str.contains('protein-ligand')"
+        - "n_tokens_total < 350"
+      transform:
+        # Force training-style pipeline for cropping
+        is_inference: False
+        crop_size: ${datasets.crop_size}
+        max_atoms_in_crop: 2400
+        p_unconditional: 1.0
+        design_tasks: ${_inference_2d_design_tasks}
+        masked_token_prob: ${datasets.masked_token_prob}
+        masked_token_frac_ex_to_mask: ${datasets.masked_token_frac_ex_to_mask}

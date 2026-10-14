@@ -1,0 +1,53 @@
+defaults:
+  - base
+  - af3_weighted_sampling
+
+dataset:
+  name: pn_unit
+  data: ${paths.data.pdb_data_dir}/pn_units_df_train_with_closest_chains.parquet
+  filters:
+    # filters common across all PDB datasets
+    - "release_date < '2022-01-01'"
+    - "resolution < 9.0"
+    - "num_polymer_pn_units <= 300"
+    - "cluster.notnull()"
+    - "pdb_id not in ${resolve_import:atomworks.ml.preprocessing.constants,PDB_IDS_WITH_UNPHYSICAL_BONDS}"
+    - "pdb_id not in ${resolve_import:rf3.data.exclusions,PDB_IDS_TO_HOLD_OUT_FROM_TRAINING}"
+    # pn_unit specific filters
+    - "~(q_pn_unit_non_polymer_res_names.notnull() and q_pn_unit_non_polymer_res_names.str.contains('${resolve_import:atomworks.constants,AF3_EXCLUDED_LIGANDS_REGEX}', regex=True))"
+    # closest chains filter (use within_20_closest_chains or within_50_closest_chains)
+    - "within_20_closest_chains"
+  columns_to_load:
+    # columns common across all PDB datasets
+    - example_id
+    - pdb_id
+    - assembly_id
+    - release_date
+    - resolution
+    - num_polymer_pn_units
+    - method
+    - cluster
+    - n_prot
+    - n_nuc
+    - n_ligand
+    - n_peptide
+    - total_num_atoms_in_unprocessed_assembly
+    # pn_unit specific columns
+    - q_pn_unit_iid
+    - q_pn_unit_non_polymer_res_names
+    - all_pn_unit_iids_after_processing
+    - q_pn_unit_is_loi
+    # closest chains columns
+    - within_20_closest_chains
+    - within_50_closest_chains
+  loader:
+    _target_: atomworks.ml.datasets.loaders.create_loader_with_query_pn_units
+    pn_unit_iid_colnames: q_pn_unit_iid
+    base_path: ${paths.data.pdb_structure_dir}
+  transform:
+    # pn_unit-specific Transform pipeline parameters
+    crop_contiguous_probability: 0.3333333333333333
+    crop_spatial_probability: 0.6666666666666667
+
+weights:
+  beta: 0.5

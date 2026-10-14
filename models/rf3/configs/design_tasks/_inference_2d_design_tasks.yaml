@@ -1,0 +1,47 @@
+# Forces every validation example through one of the four 2D-distance design
+# tasks (with hbond conditioning)
+
+# lDDT/distogram numbers from `design_validation` are upper-bounded by the GT-distance leak from C_DIS conditioning; 
+# Do not compare them to `af3_validation` lDDT directly.
+
+defaults:
+  - all
+  - _self_
+
+# Suppress non-distance tasks so every example must hit a distance task.
+unconditional:
+  frequency: 0.0
+
+ppi_hotspot:
+  frequency: 0.0
+
+# Equal weight across the four distance tasks (~25% each).
+# `p_add_hbond_condition: 1.0` forces an `hbond_gt` annotation on every
+# example so HbondMetrics has a stable count.
+tip_atom_partial_ligand_distance:
+  frequency: 100.0
+  transform:
+    global_design_task_kwargs:
+      hbond_kwargs:
+        p_add_hbond_condition: 1.0
+
+tip_atom_distance:
+  frequency: 100.0
+  transform:
+    global_design_task_kwargs:
+      hbond_kwargs:
+        p_add_hbond_condition: 1.0
+
+partial_ligand_distance:
+  frequency: 100.0
+  transform:
+    global_design_task_kwargs:
+      hbond_kwargs:
+        p_add_hbond_condition: 1.0
+
+motif_scaffold_distance:
+  frequency: 100.0
+  transform:
+    global_design_task_kwargs:
+      hbond_kwargs:
+        p_add_hbond_condition: 1.0

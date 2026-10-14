@@ -1,0 +1,208 @@
+# Model architecture
+_target_: rf3.model.RF3.RF3
+
+
+# +---------- Channel dimensions ----------+
+c_s: 384
+c_z: 128
+c_atom: 128
+c_atompair: 16
+c_s_inputs: 449
+
+# +---------- LayerNorm bias toggles (grouped; all-False = current behavior) ----------+
+norm_bias:
+  _target_: rf3.model.layers.utils.layer_utils.NormBiasConfig
+  qk: false
+  attention_io: false
+  triangle: false
+  projection: false
+
+mini_rollout_sampler:
+  solver: "af3"
+  num_timesteps: 20 # 20 timesteps for the mini-rollout (vs. 200 for the full rollout during inference)
+  min_t: 0
+  max_t: 1
+  sigma_data: ${model.net.diffusion_module.sigma_data}
+  s_min: 4e-4
+  s_max: 160
+  p: 7
+  gamma_0: 0.8
+  gamma_min: 1.0
+  noise_scale: 1.003
+  step_scale: 1.5
+
+# +---------- Feature embedding ----------+
+feature_initializer:
+  # InputFeatureEmbedder
+  input_feature_embedder:
+    features:
+      - restype
+      - profile
+      - deletion_mean
+    atom_attention_encoder:
+      c_token: 384
+      c_atom_1d_features: 389
+      c_tokenpair: ${model.net.c_z}
+      atom_1d_features:
+        - ref_pos
+        - ref_charge
+        - ref_mask
+        - ref_element
+        - ref_atom_name_chars
+      atom_transformer:
+          n_block: 3
+          atom_transformer_block:
+            n_head: 4
+            qk_norm: true
+            query_window_size: 32
+            key_window_size: 128
+            periodicity: 32
+
+
+  # RelativePositionEncoding
+  relative_position_encoding:
+    r_max: 32
+    s_max: 2
+
+# +---------- Recycler ----------+
+recycler:
+  # Pairformer
+  n_pairformer_blocks: 48
+  pairformer_block:
+    p_drop: 0.25
+    compile: ${model.compile}
+    triangle_multiplication:
+      d_hidden: 128
+      use_cuequivariance: ${model.use_cueq_trimult}
+    triangle_attention:
+      n_head: 4
+      d_hidden: 32
+      use_cuequivariance: ${model.use_cueq_triattn}
+    attention_pair_bias:
+      n_head: 12
+      qk_norm: true
+      use_cuequivariance: ${model.use_cueq_attnbias}
+
+  # TemplateEmbedder
+  template_embedder:
+    n_block: 2
+    raw_template_dim: 66
+    c: 64
+    p_drop: 0.25
+    use_cueq_trimult: ${model.use_cueq_trimult}
+    use_cueq_triattn: ${model.use_cueq_triattn}
+    gate_output_by_distogram_condition: false
+
+  # MSA module
+  msa_module:
+    n_block: 4
+    c_m: 64
+    p_drop_msa: 0.15
+    p_drop_pair: 0.25
+    compile: ${model.compile}
+    msa_subsample_embedder:
+      num_sequences: 1024
+      dim_raw_msa: 35
+      c_s_inputs: ${model.net.c_s_inputs}
+      c_msa_embed: ${model.net.recycler.msa_module.c_m}
+    outer_product: 
+      c_msa_embed: ${model.net.recycler.msa_module.c_m}
+      c_outer_product: 32
+      c_out: ${model.net.c_z}
+    msa_pair_weighted_averaging: 
+      n_heads: 8
+      c_weighted_average: 32
+      c_msa_embed: ${model.net.recycler.msa_module.c_m}
+      c_z: ${model.net.c_z}
+    msa_transition: 
+      n: 4  
+      c: ${model.net.recycler.msa_module.c_m}
+    triangle_multiplication_outgoing:
+      d_pair: ${model.net.c_z}
+      d_hidden: 128
+      bias: False
+      use_cuequivariance: ${model.use_cueq_trimult}
+    triangle_multiplication_incoming:
+      d_pair: ${model.net.c_z}
+      d_hidden: 128
+      bias: False
+      use_cuequivariance: ${model.use_cueq_trimult}
+    triangle_attention_starting:
+      d_pair: ${model.net.c_z}
+      n_head: 4
+      d_hidden: 32
+      use_cuequivariance: ${model.use_cueq_triattn}
+    triangle_attention_ending:
+      d_pair: ${model.net.c_z}
+      n_head: 4
+      d_hidden: 32
+      use_cuequivariance: ${model.use_cueq_triattn}
+    pair_transition: 
+      n: 4
+      c: ${model.net.c_z}
+
+# +---------- Diffusion module ----------+
+diffusion_module:
+  sigma_data: 16
+  c_token: 768
+  f_pred: edm
+  upcast_inputs: true
+  diffusion_conditioning:
+    c_s_inputs: ${model.net.c_s_inputs}
+    c_t_embed: 256
+    relative_position_encoding:
+      r_max: 32
+      s_max: 2
+  atom_attention_encoder:
+    c_tokenpair: ${model.net.c_z}
+    c_atom_1d_features: 389
+    atom_1d_features:
+        - ref_pos
+        - ref_charge
+        - ref_mask
+        - ref_element
+        - ref_atom_name_chars
+    atom_transformer:
+      n_block: 3
+      atom_transformer_block:
+        n_head: 4
+        qk_norm: true
+        query_window_size: 32
+        key_window_size: 128
+        periodicity: 32
+    use_chiral_features: true
+    no_grad_on_chiral_center: false
+  diffusion_transformer:
+    n_block: 24
+    diffusion_transformer_block:
+      n_head: 12
+      qk_norm: true
+      use_cuequivariance: ${model.use_cueq_attnbias}
+      compile: ${model.compile}
+  atom_attention_decoder:
+    atom_transformer:
+      n_block: 3
+      atom_transformer_block:
+        n_head: 4
+        qk_norm: true
+        query_window_size: 32
+        key_window_size: 128
+        periodicity: 32
+
+distogram_head:
+  bins: 65
+
+# +---------- Inference sampler ----------+
+inference_sampler:
+  solver: "af3"
+  num_timesteps: 200
+  min_t: 0
+  max_t: 1
+  sigma_data: ${model.net.diffusion_module.sigma_data}
+  s_min: 4e-4
+  s_max: 160
+  p: 7
+  gamma_0: 0.8
+  gamma_min: 1.0
+  noise_scale: 1.003
+  step_scale: 1.5

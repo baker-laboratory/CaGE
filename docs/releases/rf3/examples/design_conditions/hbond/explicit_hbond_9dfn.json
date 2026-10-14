@@ -1,0 +1,12 @@
+[
+  {
+    "name": "explicit_hbond_9dfn",
+    "components": [{"path": "docs/releases/rf3/examples/9dfn.cif"}],
+    "inference_engine": "rf3",
+    "seed": 0,
+    "hbond_selection": {
+      "C/SAM/402": "ACCEPTOR",
+      "A/*/110": "DONOR"
+    }
+  }
+]
