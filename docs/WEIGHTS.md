@@ -155,4 +155,4 @@ was trained, not as a one-command reproduction.
 ## Citing the weights
 
 Cite the CaGE manuscript (`CITATION.cff`) and the Zenodo DOI of the specific checkpoint you
-used. Record provenance of the code side in `PROVENANCE.md`.
+used.

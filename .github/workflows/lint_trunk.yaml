@@ -28,7 +28,7 @@ jobs:
         run: pip install ruff==${{ env.RUFF_VERSION }}
       # Scoped to the paths CaGE owns and keeps formatted. models/rf3/src and
       # src/foundry carry the upstream foundry formatting and are deliberately left
-      # comparable with it, so they are not part of this gate (see PROVENANCE.md).
+      # comparable with it, so they are not part of this gate.
       - name: Ruff format
         run: ruff format --diff tests models/rf3/tests models/rf3/scripts
       - name: Ruff check

@@ -18,9 +18,7 @@ keywords:
   - classifier-free guidance
   - structure prediction
 
-# Authors of this software release. Names and affiliations only; see the README's
-# "References and sources" section for the
-# module-by-module attribution and PROVENANCE.md for the commit-level record.
+# Authors of this software release. Names and affiliations only.
 authors:
   - family-names: "Qian"
     given-names: "Tingli"

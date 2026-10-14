@@ -228,3 +228,6 @@ logs/
 
 ._*
 !docs/_static/*.png
+
+# Internal, not part of the public release
+PROVENANCE.md

@@ -29,7 +29,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ---
 
-The portions of this distribution added for CaGE (see README.md and PROVENANCE.md) are
+The portions of this distribution added for CaGE (see README.md) are
 released under the same BSD 3-Clause terms above:
 
 Copyright (c) 2026, `<TODO: copyright holder -- the individual authors or the University of

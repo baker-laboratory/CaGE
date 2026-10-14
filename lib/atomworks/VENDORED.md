@@ -132,7 +132,7 @@ tests/io/utils/test_selection_utils.py
 `pytest tests/io` from inside this directory passes against this snapshot. Note that
 `tests/conftest.py` and `src/atomworks/ml/` still contain upstream prose mentioning the
 cluster the package was developed on; those are comments and docstrings only, and are the
-expected hits of the sanitization scan in `PROVENANCE.md` §5.
+expected hits of the sanitization scan.
 
 ## Version collision
 
