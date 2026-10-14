@@ -54,18 +54,31 @@ pip install -e .            # or: pip install -e ".[rf3]" on a Linux GPU box
 
 ### Check the installation
 
+After installing the package, install the minimal `test` extra in the same
+environment. It includes `pytest` and `pytest-dotenv`, which supports the vendored
+AtomWorks `env_files` configuration; the full `dev` extra is not required.
+
 ```bash
-python -c "import foundry, rf3, atomworks; print('ok')"
-pytest tests models/rf3/tests                  # 214 passed
-(cd lib/atomworks && pytest tests/io)          # 82 passed
+uv pip install -e ".[test]"
+# With plain pip, after installing vendored AtomWorks as above:
+# python -m pip install -e ".[test]"
 ```
 
-These are the two steps `.github/workflows/tests.yaml` runs on a plain `ubuntu-latest`
-runner, which is the authoritative install recipe if the counts above have drifted.
+For a new GPU installation with tests, combine the extras as `.[rf3,test]`.
+Then run both suites using that environment's Python:
+
+```bash
+python -c "import foundry, rf3, atomworks; print('ok')"
+python -m pytest tests models/rf3/tests -q
+(cd lib/atomworks && python -m pytest tests/io -q)
+```
+
+These are the two suites `.github/workflows/tests.yaml` runs on a plain
+`ubuntu-latest` runner after installing `.[test]`.
 
 The vendored AtomWorks ships only its `io` test subset, and it has its own
-`conftest.py` / rootdir, so run it from `lib/atomworks`: `pytest` at the repository root
-deliberately does not recurse into `lib/`.
+`conftest.py` / rootdir, so run it from `lib/atomworks`: `python -m pytest` at the
+repository root deliberately does not recurse into `lib/`.
 
 ## Model weights
 

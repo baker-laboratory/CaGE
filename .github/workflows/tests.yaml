@@ -14,12 +14,12 @@ jobs:
           python-version: "3.11"
       - name: Install (editable, vendored atomworks first)
         run: |
-          pip install -e "./lib/atomworks[ml]"
-          pip install -e .
+          python -m pip install -e "./lib/atomworks[ml]"
+          python -m pip install -e ".[test]"
       - name: Tests (CaGE)
         env:
           DISABLE_CUEQUIVARIANCE: "1"   # CPU runner: cuequivariance is not installed
-        run: pytest tests models/rf3/tests -q
+        run: python -m pytest tests models/rf3/tests -q
       - name: Tests (vendored atomworks, io subset)
         working-directory: lib/atomworks
-        run: pytest tests/io -q
+        run: python -m pytest tests/io -q
