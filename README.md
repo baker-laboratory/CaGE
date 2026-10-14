@@ -52,6 +52,13 @@ rf3 fold inputs='docs/releases/rf3/examples/design_conditions/hotspot/ppi_hotspo
 Run `rf3 fold` from the repository root: the bundled example inputs use
 repository-relative paths.
 
+For repeatable comparisons, explicitly add `model_seeds='[0]'` to each `rf3 fold`
+command (or choose another seed list). A `"seed"` field in an input JSON is ignored;
+it does not set the model seed. The default, `model_seeds=null`, does not explicitly
+reset the seed before each model forward pass. An output directory named `seed-0`
+alone does not prove that `model_seeds=[0]` was used. See
+[the model control arguments](models/rf3/README.md#command-line-arguments).
+
 - **[docs/INSTALL.md](docs/INSTALL.md)** — installation, environment variables, optional
   external tools, GPU notes.
 - **[docs/WEIGHTS.md](docs/WEIGHTS.md)** — released checkpoints, what each was trained on,

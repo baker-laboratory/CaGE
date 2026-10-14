@@ -758,7 +758,20 @@ If inputs are given in a form that specifies chirality, the model will receive t
 
 - **`num_steps`** *(optional)*: Number of steps for sampling of the diffusion module. AlphaFold3 uses 200 steps, but we find that 50 steps is generally safe with no quality degradation and significant speed improvements. Defaults to 50.
 
-- **`model_seeds`** *(optional)*: List of model seeds. Running inference with multiple model seeds is the best, and most expensive, way to generate output diversity. For example, `model_seeds="[42]"` for a single seed, or `model_seeds="[42, 123]"` for multi-seed inference. Defaults to `null` (no seeding).
+- **`model_seeds`** *(optional)*: List of model seeds. Running inference with multiple model seeds is the best, and most expensive, way to generate output diversity. For example, `model_seeds="[42]"` for a single seed, or `model_seeds="[42, 123]"` for multi-seed inference. Defaults to `null` (no explicit seed reset before each model forward pass).
+
+  **Set this argument explicitly for reproducible runs and scale sweeps.** A `"seed"`
+  field in an input JSON, including `"seed": 0` in the glycosidase examples, is not
+  read by the inference input parser. Pass `model_seeds='[0]'` on the command line,
+  or `model_seeds=[0]` when constructing `RF3InferenceEngine` in Python. The list
+  applies to all examples in the run. With `model_seeds=null`, featurization still
+  internally seeds with 0, and the forward pass continues from the RNG state left
+  by featurization; it does not reset to seed 0 as `model_seeds=[0]` does. An unset
+  model seed is also labelled `seed-0` in output paths, so that label is not evidence
+  that `model_seeds=[0]` was used. Keep the same explicit seed list and
+  `diffusion_batch_size` across sweep settings, and
+  record them with the command; fixing a seed does not guarantee bitwise-identical
+  results across different hardware or software versions.
 
 - **`template_noise_scale`** *(optional)*: Noise scale applied to template coordinates. Defaults to `1e-5`.
 

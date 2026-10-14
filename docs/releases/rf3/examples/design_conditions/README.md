@@ -16,6 +16,14 @@ rf3 fold inputs='docs/releases/rf3/examples/design_conditions/hotspot/ppi_hotspo
 Field semantics, legal values, training rates and the pitfalls of each condition are in
 [docs/DESIGN_CONDITIONS.md](../../../../DESIGN_CONDITIONS.md).
 
+For scale sweeps, explicitly append `model_seeds='[0]'` (or your chosen seed list)
+to every command and keep `diffusion_batch_size` the same across settings. The
+`"seed": 0` field in the glycosidase JSON files is ignored by the input parser;
+the engine's `model_seeds` argument sets the seed before each forward pass. With
+the default `null`, the forward pass instead uses the RNG state left by
+featurization (which internally uses seed 0). An unset model seed is still labelled
+`seed-0` in output paths, so that label does not establish `model_seeds=[0]`.
+
 ## Index
 
 | Condition | Input | Structure | What it conditions | Verified featurization |
