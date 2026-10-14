@@ -43,6 +43,7 @@ from rf3.utils.io import (
     dump_diffusion_trajectories,
     get_sharded_output_path,
 )
+from rf3.utils.model_output import normalize_inference_network_output
 from rf3.utils.predicted_error import (
     annotate_atom_array_b_factor_with_plddt,
     compile_af3_style_confidence_outputs,
@@ -930,14 +931,9 @@ class RF3InferenceEngine(BaseInferenceEngine):
                         motif_guidance=motif_guidance,
                         confidence_streams=confidence_streams,
                     )
-                    network_output = {
-                        k: v.squeeze(0)
-                        if isinstance(v, torch.Tensor)
-                        and v.dim() > 0
-                        and v.shape[0] == 1
-                        else v
-                        for k, v in valid_step_outs["network_output"].items()
-                    }
+                    network_output = normalize_inference_network_output(
+                        valid_step_outs["network_output"]
+                    )
                     metrics_output = valid_step_outs["metrics_output"]
 
                 # Handle early stopping for this seed
