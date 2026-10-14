@@ -9,7 +9,7 @@ abstract: >-
 type: software
 version: 0.1.0
 license: BSD-3-Clause
-repository-code: "<TODO: public repository URL, filled once the repository is pushed>"
+repository-code: "https://github.com/baker-laboratory/CaGE"
 # Add `date-released:` (YYYY-MM-DD) and `doi:` (the Zenodo software DOI) when the
 # repository snapshot is archived; see docs/WEIGHTS.md for the weight DOIs.
 keywords:
@@ -42,16 +42,54 @@ authors:
     given-names: "Frank"
     affiliation: "Institute for Protein Design, University of Washington"
 
-# The manuscript this software accompanies. Title, full author list and DOI are not yet
-# available and must be filled before release.
+# The manuscript this software accompanies. Names are as the bioRxiv record prints them;
+# expand the given names to their full forms before the journal version.
 preferred-citation:
   type: article
-  title: "<TODO: CaGE manuscript title>"
+  title: "Complex enzyme active site scaffolding by iteratively detuned catalytic guidance"
   authors:
-    - name: "<TODO: full CaGE author list, in submission order>"
-  journal: "<TODO: journal or preprint server>"
+    - family-names: "Qian"
+      given-names: "Tingli"
+    - family-names: "Wang"
+      given-names: "W."
+    - family-names: "Gao"
+      given-names: "S."
+    - family-names: "Muraishi"
+      given-names: "Aiko"
+    - family-names: "Zhao"
+      given-names: "B."
+    - family-names: "An"
+      given-names: "D. N."
+    - family-names: "Xue"
+      given-names: "F."
+    - family-names: "Kazman"
+      given-names: "Max"
+    - family-names: "Mendoza"
+      given-names: "J."
+    - family-names: "Nguyen"
+      given-names: "H."
+    - family-names: "Bera"
+      given-names: "A."
+    - family-names: "Kang"
+      given-names: "A."
+    - family-names: "Yang"
+      given-names: "A."
+    - family-names: "Dai"
+      given-names: "W."
+    - family-names: "Liang"
+      given-names: "J."
+    - family-names: "Wang"
+      given-names: "Y."
+    - family-names: "Huang"
+      given-names: "X."
+    - family-names: "DiMaio"
+      given-names: "Frank"
+    - family-names: "Baker"
+      given-names: "David"
+  journal: "bioRxiv"
   year: 2026
-  doi: "<TODO: manuscript DOI>"
+  date-published: "2026-10-06"
+  doi: "10.64898/2026.10.02.756307"
 
 references:
   # Verbatim from lib/atomworks/README.md (Citation section) -- do not retype from memory.

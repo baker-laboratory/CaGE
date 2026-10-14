@@ -1,4 +1,4 @@
-# CaGE: conditioned all-atom structure generation with guidance
+# CaGE: conditioned all-atom structure generation with catalytic guidance
 
 CaGE adds **five atom-level design conditions** to the [RF3](https://doi.org/10.1101/2025.08.14.670328)
 all-atom structure prediction network, trains them jointly with the structure objective,
@@ -105,3 +105,28 @@ modifications, templating) live one directory up in
   out of the box is inference, featurization of every condition, and the metrics that need
   no external tool. See the last section of
   [docs/DESIGN_CONDITIONS.md](docs/DESIGN_CONDITIONS.md).
+
+## Citation
+
+CaGE is described in:
+
+> Qian T, Wang W, Gao S, Muraishi A, Zhao B, An DN, Xue F, Kazman M, Mendoza J, Nguyen H,
+> Bera A, Kang A, Yang A, Dai W, Liang J, Wang Y, Huang X, DiMaio F, Baker D.
+> **Complex enzyme active site scaffolding by iteratively detuned catalytic guidance.**
+> *bioRxiv* (2026). [10.64898/2026.10.02.756307](https://doi.org/10.64898/2026.10.02.756307)
+
+```bibtex
+@article{cage2026,
+  title   = {Complex enzyme active site scaffolding by iteratively detuned catalytic guidance},
+  author  = {Qian, Tingli and Wang, W. and Gao, S. and Muraishi, Aiko and Zhao, B. and
+             An, D. N. and Xue, F. and Kazman, Max and Mendoza, J. and Nguyen, H. and
+             Bera, A. and Kang, A. and Yang, A. and Dai, W. and Liang, J. and Wang, Y. and
+             Huang, X. and DiMaio, Frank and Baker, David},
+  journal = {bioRxiv},
+  year    = {2026},
+  doi     = {10.64898/2026.10.02.756307}
+}
+```
+
+[CITATION.cff](CITATION.cff) carries the same record, and lists the upstream work this
+builds on — cite RF3/AtomWorks alongside CaGE.

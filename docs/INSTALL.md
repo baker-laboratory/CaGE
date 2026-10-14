@@ -31,7 +31,7 @@ and `rf3`) plus a **vendored copy of AtomWorks** under `lib/atomworks`.
 command is enough:
 
 ```bash
-git clone <TODO: public repository URL> cage && cd cage
+git clone https://github.com/baker-laboratory/CaGE.git cage && cd cage
 uv python install 3.12
 uv venv --python 3.12 && source .venv/bin/activate
 uv pip install -e ".[rf3]"
