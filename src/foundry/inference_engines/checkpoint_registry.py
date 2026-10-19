@@ -78,14 +78,12 @@ class RegisteredCheckpoint:
         return checkpoint_dirs[0] / self.filename
 
 
-# Both checkpoints belong to the same unpublished Zenodo draft. Its reserved DOI
-# is not registered yet. Populate the download URLs only after public release.
+# Both checkpoints share the same Zenodo record.
 REGISTERED_CHECKPOINTS = {
     "run14": RegisteredCheckpoint(
-        url="https://zenodo.org/records/<RECORD_ID>/files/run14.ckpt?download=1",
+        url="https://zenodo.org/records/23460926/files/run14.ckpt?download=1",
         filename="run14.ckpt",
         description=(
-            "Not publicly available; DOI reserved only. "
             "CaGE design-condition weights, structure only (402-d atom features "
             "including the hotspot / interface-type / h-bond / RASA conditions and the "
             "2-body distance processor). No confidence head: `confidence_streams` and "
@@ -95,10 +93,9 @@ REGISTERED_CHECKPOINTS = {
         doi="10.5281/zenodo.23460926",
     ),
     "run14_confhead": RegisteredCheckpoint(
-        url="https://zenodo.org/records/<RECORD_ID>/files/run14_confhead.ckpt?download=1",
+        url="https://zenodo.org/records/23460926/files/run14_confhead.ckpt?download=1",
         filename="run14_confhead.ckpt",
         description=(
-            "Not publicly available; DOI reserved only. "
             "CaGE design-condition weights plus the AF3-style confidence head, for "
             "per-stream confidence and stream ranking. The default `ckpt_path` of the "
             "`rf3` inference engine, and a superset of `run14`."

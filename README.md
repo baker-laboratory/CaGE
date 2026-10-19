@@ -24,29 +24,27 @@ holds a reference motif rigid during denoising.
 - **Noise-interval gating.** Apply guidance only where it helps, over a chosen band of
   the diffusion noise schedule (`inference_cfg_sigma_min` / `inference_cfg_sigma_max`).
 - **Per-stream confidence.** Score the unconditional stream, each guidance stream, and the
-  CFG-extrapolated "merged" stream with the confidence head, and rank samples by whichever
-  stream you trust (`confidence_streams`, `ranking_stream`).
-- **Motif guidance**, a sampler-side complement to the above: rather than conditioning the
-  network, it Kabsch-fits a reference motif onto the prediction at every diffusion step and
-  projects the motif atoms toward it. It is untrained, so it is neither a design condition
-  nor a CFG axis — see [docs/DESIGN_CONDITIONS.md](docs/DESIGN_CONDITIONS.md) §10, which
-  also explains why each group needs at least three non-collinear anchor atoms.
+  CFG-extrapolated "merged" stream with the confidence head. Select the scoring and ranking
+  streams with `confidence_streams` and `ranking_stream`.
+- **Motif guidance.** During active diffusion steps, the sampler Kabsch-fits a reference
+  motif onto the prediction and projects the motif atoms toward it. Use it with a backbone
+  template and at least three non-collinear anchors per group. See
+  [docs/DESIGN_CONDITIONS.md](docs/DESIGN_CONDITIONS.md#10-motif-guidance-motif_guidance_selection)
+  for the controls and activation criteria.
 
 ## Getting started
 
-**Model weights are not yet publicly available.** The reserved Zenodo DOI is
-`10.5281/zenodo.23460926`; it will be registered when the weight record is published.
-Inference currently requires an authorized local checkpoint. Place it in
-`~/.foundry/checkpoints/`, or pass its path as `ckpt_path=/path/to/run14_confhead.ckpt`.
-See [docs/WEIGHTS.md](docs/WEIGHTS.md) for availability and file checksums.
+Download the model weights from [Zenodo](https://doi.org/10.5281/zenodo.23460926)
+with `foundry install run14_confhead`. See [docs/WEIGHTS.md](docs/WEIGHTS.md) for
+checkpoint details, direct download links and checksums.
 
 ```bash
 # install (see docs/INSTALL.md for the pip route, env vars and GPU notes)
 uv venv --python 3.12 && source .venv/bin/activate
 uv pip install -e ".[rf3]"
 
-# After the weights are publicly released, download the default checkpoint with:
-# foundry install run14_confhead
+# download the default checkpoint
+foundry install run14_confhead
 
 # a first prediction
 rf3 fold inputs='models/rf3/tests/data/5vht_from_json.json'
@@ -59,15 +57,13 @@ Run `rf3 fold` from the repository root: the bundled example inputs use
 repository-relative paths.
 
 For repeatable comparisons, explicitly add `model_seeds='[0]'` to each `rf3 fold`
-command (or choose another seed list). A `"seed"` field in an input JSON is ignored;
-it does not set the model seed. The default, `model_seeds=null`, does not explicitly
-reset the seed before each model forward pass. An output directory named `seed-0`
-alone does not prove that `model_seeds=[0]` was used. See
+command (or choose another seed list), and keep `diffusion_batch_size` fixed.
+The input JSON's `"seed"` field is ignored; use the `model_seeds` argument. See
 [the model control arguments](models/rf3/README.md#command-line-arguments).
 
 - **[docs/INSTALL.md](docs/INSTALL.md)** — installation, environment variables, optional
   external tools, GPU notes.
-- **[docs/WEIGHTS.md](docs/WEIGHTS.md)** — checkpoint availability, what each was trained on,
+- **[docs/WEIGHTS.md](docs/WEIGHTS.md)** — downloads, checkpoint details,
   and which one you need for per-stream confidence.
 - **[models/rf3/README.md](models/rf3/README.md)** — the full inference API: input
   formats, MSAs, ligands, templating, every command-line argument.
@@ -82,14 +78,12 @@ alone does not prove that `model_seeds=[0]` was used. See
 | H-bond donor / acceptor | `hbond_selection` | `{selection: DONOR / ACCEPTOR}` | 0.4 % |
 | Atom-pair distances | `distance_template_selection` | atom groups, optionally with distances in Å | 4 % |
 
-Rates are the effective per-example rates of the released training recipe; they are not
-the surface values of the config file (one block of probabilities in it is inert). Each
-condition has its own quirks — RASA was trained on ligand atoms only, interface type never
-occurs without hotspots, the distance condition atomizes the residues it selects.
+Rates are the effective per-example rates of the training recipe. RASA was trained
+on ligand atoms, interface type is supplied with hotspots during training, and the
+distance condition atomizes the residues it selects.
 
-> **Read [docs/DESIGN_CONDITIONS.md](docs/DESIGN_CONDITIONS.md)** for the authoritative
-> per-condition reference: JSON and CLI forms, legal values, features and shapes, metrics,
-> and the guidance semantics in full.
+See [docs/DESIGN_CONDITIONS.md](docs/DESIGN_CONDITIONS.md) for JSON and CLI forms,
+accepted values, features, metrics and guidance settings.
 
 ## Examples
 
@@ -113,11 +107,10 @@ modifications, templating) live one directory up in
   estimates; `models/rf3/scripts/render_diffusion_trajectory.py` and
   `models/rf3/scripts/layout_trajectory_panel.py` turn those into the guidance mechanism
   panels.
-- **Caveat.** The training and validation *datasets* are not distributed with this
-  repository, and h-bond training/metrics additionally need third-party HBPLUS. What runs
-  out of the box is inference, featurization of every condition, and the metrics that need
-  no external tool. See the last section of
-  [docs/DESIGN_CONDITIONS.md](docs/DESIGN_CONDITIONS.md).
+- **Data and tools.** Supply your own training and validation datasets. H-bond
+  training and metrics use HBPLUS. See
+  [docs/DESIGN_CONDITIONS.md](docs/DESIGN_CONDITIONS.md#11-metrics-and-training-dependencies)
+  for metric inputs and dependencies.
 
 ## Citation
 

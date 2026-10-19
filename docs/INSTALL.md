@@ -4,22 +4,15 @@ CaGE is the RF3 inference and training stack with the five design conditions and
 classifier-free guidance. It is one Python package (`cage-rf3`, importable as `foundry`
 and `rf3`) plus a **vendored copy of AtomWorks** under `lib/atomworks`.
 
-> [!IMPORTANT]
-> The pip/uv commands below were not exercised end to end while preparing this release
-> (the verification environment had no network access), so treat them as the intended
-> route rather than a tested transcript. Everything *after* installation — imports, the
-> test suites, featurization of every bundled example, and a full inference run — was
-> verified in a CPU-only container built from this tree.
-
 ## Requirements
 
 - Linux (x86-64) for GPU inference; macOS/Linux CPU works for parsing, featurization and
   the test suites.
-- Python >= 3.11 (3.12 is what this release was developed and tested against).
+- Python >= 3.11; the commands below use Python 3.12.
 - An NVIDIA GPU with recent CUDA drivers for any real prediction. A ~400-residue complex
   is comfortable on 24 GB; the atom-pair-distance condition atomizes the residues it
   selects, which increases the token count and the memory footprint.
-- Git, if you want a meaningful package version: the version is derived from git tags
+- Git for package versioning: the version is derived from git tags
   (`hatch-vcs`), and a download without `.git` reports `0.0.0`.
 
 ## Install
@@ -42,9 +35,8 @@ The `rf3` extra adds the Linux-only cuEquivariance CUDA op packages. Drop it
 
 ### With plain `pip`
 
-`pip` does not read `[tool.uv.sources]`, and `cage-rf3` depends on `atomworks[ml]`.
-**Install the vendored AtomWorks first**, otherwise pip resolves `atomworks` from PyPI and
-you get a different copy than the one this release was verified against:
+`pip` does not read `[tool.uv.sources]`. Install the vendored AtomWorks before
+CaGE so that its `atomworks[ml]` dependency uses the bundled copy:
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
@@ -82,21 +74,17 @@ repository root deliberately does not recurse into `lib/`.
 
 ## Model weights
 
-The checkpoints are **not yet publicly available**. Their shared reserved Zenodo
-DOI is `10.5281/zenodo.23460926`; the record is an unpublished draft and the DOI is
-not registered yet. If you already have an authorized copy, place it in
-`~/.foundry/checkpoints/` or pass its path with `ckpt_path=/path/to/checkpoint.ckpt`.
-
-The following download commands will apply after public release and activation
-of the download URLs:
+Download the checkpoints from [Zenodo](https://doi.org/10.5281/zenodo.23460926)
+using the CLI:
 
 ```bash
 foundry install run14_confhead      # the default: conditions + confidence head
 foundry install run14               # structure-only weights (ckpt_path=run14)
 ```
 
-Downloaded weights land in `~/.foundry/checkpoints` by default. See
-[WEIGHTS.md](WEIGHTS.md) for availability, checkpoint details and checksums.
+Downloaded weights are saved in `~/.foundry/checkpoints` by default. To use a
+checkpoint stored elsewhere, pass `ckpt_path=/path/to/checkpoint.ckpt`.
+See [WEIGHTS.md](WEIGHTS.md) for direct download links and checksums.
 
 ## Environment variables
 
@@ -115,14 +103,9 @@ in. Nothing below is required for a basic prediction with downloaded weights.
 
 ## GPU notes
 
-- **cuEquivariance kernels are disabled in this release.** `SHOULD_USE_CUEQUIVARIANCE` in
-  `src/foundry/__init__.py` is initialized to `False` and never assigned anywhere else, so
-  the standard PyTorch paths are used even when the CUDA packages are installed and even
-  though the import succeeds (the log line claiming the kernels "will be used" is left over
-  from the upstream tree). This costs some speed and changes nothing about the results. On
-  CPU the kernels are unavailable in any case.
-- CPU-only runs work but are slow; they are how the bundled examples were checked for
-  featurization correctness.
+- Inference uses the standard PyTorch kernels. cuEquivariance kernels are disabled
+  by `SHOULD_USE_CUEQUIVARIANCE = False` in `src/foundry/__init__.py`.
+- CPU inference is supported but slower than GPU inference.
 
 ## First prediction
 

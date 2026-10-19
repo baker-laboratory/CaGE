@@ -4,10 +4,8 @@ CaGE extends RF3 with **five atom-level design conditions** that are injected du
 training and can be requested at inference time, plus **per-axis classifier-free guidance
 (CFG)** over those conditions.
 
-This page is the reference for all of them: the JSON field, the CLI form, the legal
-values, the feature the model actually sees, how often the condition was seen in
-training, the metric that scores it, a runnable example, and the semantics that are easy
-to get wrong.
+This page covers JSON and CLI syntax, accepted values, model features, training
+rates, metrics and examples for each condition.
 
 All commands on this page are run **from the repository root** — the bundled example
 JSONs reference their component files with repository-relative paths (`docs/releases/rf3/...`),
@@ -34,7 +32,7 @@ in **two** places — the trunk pair representation
 (`models/rf3/src/rf3/model/layers/embedders/feature_init.py:267`) and the diffusion
 atom-attention encoder (`models/rf3/src/rf3/model/layers/diffusion/encoder.py:147`).
 
-### Training rates: do not read them off the config surface
+### Training rates
 
 The rates above are the effective per-example rates of the released recipe
 (`models/rf3/configs/design_tasks/all.yaml`, whose enabled tasks sum to 100, so each
@@ -47,12 +45,9 @@ weight reads directly as a percentage):
 - RASA and h-bond are *modifiers* of those distance tasks:
   `0.6 x 4 % = 2.4 %` for RASA and `(0.0 + 0.0 + 0.2 + 0.2) x 1 % = 0.4 %` for h-bond.
 
-> [!WARNING]
-> `ppi_hotspot` also carries `rasa_kwargs` / `hbond_kwargs` in its
-> `global_design_task_kwargs`, but **`PPIHotspot.forward` never calls
-> `apply_design_task_modifiers`** — the only reader of those kwargs. They are inert, kept
-> only so the config still matches the recipe the released weights were trained with.
-> Counting them (e.g. as `0.6 x (15 + 4) %`) overestimates the RASA rate by ~5x.
+The `rasa_kwargs` and `hbond_kwargs` in `ppi_hotspot.global_design_task_kwargs`
+are unused: `PPIHotspot.forward` does not call `apply_design_task_modifiers`.
+They do not contribute to the rates above.
 
 ### Conditions, not constraints
 
@@ -121,22 +116,18 @@ Labels *what kind* of interface the hotspots belong to.
 rf3 fold inputs='docs/releases/rf3/examples/design_conditions/interface_type/pli_interface_type_9dfn.json'
 ```
 
-### Two pitfalls
+### Scalar labels and CFG
 
 1. **The scalar form needs `hotspot_selection`.** A bare string is written onto the atoms
    picked by `hotspot_selection`; with no hotspots there is nothing to write on, and
    `apply_interface_type` logs a warning and returns without applying the condition
    (`apply_interface_type` in `models/rf3/src/rf3/utils/inference.py`). The dict form
    writes onto its own selections and does not need hotspots.
-2. **Under per-condition CFG this axis keeps its prerequisite.** Isolating an axis
-   normally drops every other condition field, which for a scalar `interface_type` would
-   leave no hotspot mask to attach the label to — a stream bit-identical to the
-   unconditional one, i.e. guidance of exactly zero with nothing to show it. So
-   `interface_type` is declared a dependent axis (`CFG_CONDITION_PREREQUISITES` in
-   `models/rf3/src/rf3/utils/inference.py`) and its stream keeps `hotspot_selection` as
-   well. If you guide a scalar `interface_type` without supplying `hotspot_selection`,
-   the run raises rather than quietly guiding nothing; the dict form stands alone and
-   needs no prerequisite.
+2. **Per-condition CFG retains `hotspot_selection` for this axis.** It provides the
+   atoms to which a scalar `interface_type` label is applied. A scalar label without
+   hotspots raises an error under CFG; the dict form supplies its own selections.
+   This dependency is defined in `CFG_CONDITION_PREREQUISITES` in
+   `models/rf3/src/rf3/utils/inference.py`.
 
 ---
 
@@ -172,17 +163,16 @@ Asks for atoms to end up buried, intermediate, or exposed.
 rf3 fold inputs='docs/releases/rf3/examples/design_conditions/rasa/ligand_rasa_5hkn.json'
 ```
 
-### Two pitfalls
+### SASA calculation and atom selection
 
 1. **The label is accessibility *within the selected set*, not burial in the complex.**
    SASA is computed after slicing to the selected atoms (that is what AtomWorks'
    `atom_filter` does), in training, at inference and in the metric alike. A ligand atom
    that is buried by the protein but exposed within the isolated ligand is labelled
    `EXPOSED`.
-2. **Do not select ions or metals.** `ProtOr` radii do not cover them, their SASA comes
-   out `NaN`, and `np.digitize(NaN)` falls into the top bin — silently labelling them
-   `EXPOSED`. The behaviour is kept deliberately (training did the same), but it is not
-   what you want to condition on.
+2. **Select atoms covered by `ProtOr` radii.** Ions and metals have undefined SASA
+   (`NaN`) with these radii and are assigned to the `EXPOSED` bin. Exclude them from
+   RASA selections.
 
 ---
 
@@ -209,7 +199,7 @@ Declares which atoms act as h-bond donors and which as acceptors.
 rf3 fold inputs='docs/releases/rf3/examples/design_conditions/hbond/explicit_hbond_9dfn.json'
 ```
 
-### One pitfall
+### Training labels
 
 **`BOTH` was never produced in training.** `calculate_hbonds` assigns donor and
 acceptor per h-bond, overwriting as it goes, and the two partners of a bond are always
@@ -218,13 +208,11 @@ Passing `BOTH` at inference is out of distribution.
 
 ## 6. Checking that a selection matched
 
-A selection that cannot be parsed raises `ValueError` naming the offending string (a
-residue range matches only if every residue in it is present) — conditions are never
-dropped silently through a parse failure. A *well-formed* selection that happens to match
-no atom, however, simply writes nothing and does not raise.
+A malformed selection raises `ValueError` naming the offending string. A residue
+range matches only if every residue in it is present. A valid selection that matches
+no atoms writes no condition labels.
 
-Three things make that easy to trip over, so verify your selections against the **parsed**
-structure, not the raw file:
+Selections use the **parsed** structure's chain IDs and residue numbers:
 
 - AtomWorks assigns chain IDs during parsing, splitting non-polymer entities into their
   own chains. The 5HKN ligand sits in chain `B` of the input file but is selected as
@@ -300,7 +288,7 @@ run raises.
 rf3 fold inputs='docs/releases/rf3/examples/design_conditions/2D_distance/distval_matrix_9dfn.json'
 ```
 
-### Pitfalls
+### Atomization and grouping
 
 1. **Selected residues are automatically atomized, whole-residue, and that changes the
    tokenization of the entire run.** Without it the trunk averages atom-pair distances
@@ -330,23 +318,19 @@ rf3 fold inputs='docs/releases/rf3/examples/design_conditions/2D_distance/distva
 
 ## 8. The three RF3-inherited axes
 
-These are **not** CaGE design conditions. They are gated by `p_unconditional` in the
-dataset configs, not by the `design_tasks` frequencies, and they predate this work. They
-are listed here because they are guidable CFG axes alongside the five.
+The three RF3 axes below can be guided alongside the five CaGE conditions. Their
+training frequency is controlled by `p_unconditional` in the dataset configs.
 
 | Axis | Field | Status |
 |---|---|---|
 | `template` | `template_selection` | RF3's token-level ground-truth distogram template. |
 | `ground_truth_conformer` | `ground_truth_conformer_selection` | RF3's reference-conformer track; part of the per-atom input. |
-| `relative_template` | `relative_template_selection` | **A new inference interface onto a condition RF3 already trained**, not a new condition. |
+| `relative_template` | `relative_template_selection` | Selection interface for RF3's inter-molecule distance conditioning. |
 
-`relative_template_selection` deserves the explicit caveat: it exposes RF3's trained
-inter-molecule distance conditioning (`p_provide_inter_molecule_distances`) through a
-selection API, and CaGE adds the API and the CFG axis — not the training signal. The
-`is_relative_template_selected__<group>` annotations it writes did not exist during
-training, so their training-time contribution is identically zero. It is written as
-`{group_name: [selections]}` (a flat list becomes a single `__all__` group), and it
-conditions distances *between* the components inside a group:
+`relative_template_selection` exposes RF3's inter-molecule distance conditioning
+(`p_provide_inter_molecule_distances`) through a selection API and a CFG axis.
+Use `{group_name: [selections]}` to condition distances between components within
+each group. A flat list becomes a single `__all__` group:
 
 ```bash
 rf3 fold inputs='docs/releases/rf3/examples/design_conditions/relative_template/relative_template_7xli.json'
@@ -359,8 +343,8 @@ axes (ground-truth conformers plus sequence masking), not on the five design con
 
 ## 9. Classifier-free guidance
 
-Guidance is off by default; with it off a run is byte-for-byte an ordinary conditional
-run. The guidable axes are exactly the eight keys of `CFG_CONDITION_FIELDS`
+Enable CFG with `inference_classifier_free_guidance=true`. The eight guidable axes
+are defined in `CFG_CONDITION_FIELDS`
 (`models/rf3/src/rf3/utils/inference.py:50-59`): the five design conditions plus the three
 inherited axes.
 
@@ -413,10 +397,9 @@ head scores:
 Anything beyond `main` requires a checkpoint with a confidence head (see
 [WEIGHTS.md](WEIGHTS.md)); asking for it without one raises. Each stream gets its own
 `ptm` / `iptm` / `has_clash` / `ranking_score`, re-run on that stream's PAE, and names
-itself in a `stream` field — so the files are directly comparable. `merged` is the closest
-thing to "the guided sample", but the head never saw extrapolated features in training;
-treat it as indicative. Cost is one extra confidence-head pass per stream per diffusion
-sample, with no extra trunk passes.
+itself in a `stream` field. `merged` scores the CFG-combined trunk features; these
+extrapolated features were absent from confidence-head training. Each additional
+stream adds one confidence-head pass per diffusion sample, with no extra trunk passes.
 
 `ranking_stream` (default `merged`) chooses which scored stream orders
 `{example_id}_ranking_scores.csv` and picks the model copied to the top level, falling
@@ -433,18 +416,12 @@ rf3 fold inputs='...' \
 
 ## 10. Motif guidance (`motif_guidance_selection`)
 
-Motif guidance is **not** one of the five design conditions and **not** a CFG axis. Where a
-design condition is a trained signal that enters the trunk as a feature, motif guidance is
-an untrained projection applied by the sampler: every diffusion step it Kabsch-fits a
-reference motif onto the current prediction's anchor atoms and interpolates the motif atoms
-toward it. It never reaches the denoiser, is never featurized, never atomizes anything, and
-so it cannot be named in `inference_cfg_scale` and does not change tokenization. It acts on
-`x0` *after* the CFG blend, so it refines the clean estimate the Euler step actually moves
-toward rather than the unconditional one.
+Motif guidance is a sampler projection. At each active diffusion step it Kabsch-fits
+a reference motif onto the predicted anchor atoms and interpolates the motif atoms
+toward that target. It acts on `x0` after the CFG blend and leaves tokenization unchanged.
 
-It is off by default, and a selection alone does not switch it on: an input that carries one
-still folds unguided and stays comparable with its own baseline. Enabling it without a
-selection raises.
+Enable it with `inference_motif_guidance=true` and supply `motif_guidance_selection`.
+Its controls are separate from `inference_cfg_scale`; it is disabled by default.
 
 **Use motif guidance together with a backbone-level template.** Provide the scaffold
 backbone through `template_selection`, for example
@@ -455,10 +432,9 @@ atoms and alignment anchors separately with `motif_guidance_selection`.
 
 If using CFG, keep the `template` axis active, for example
 `inference_classifier_free_guidance=true 'inference_cfg_scale={template: 1.0}'`.
-This combination does not require a `distance_template_selection`. Supplying a
-template does not bypass motif guidance's per-sample arming threshold. This is a
-usage requirement; the current CLI does not enforce the presence of a backbone
-template automatically.
+This combination uses `template_selection` and `motif_guidance_selection` without
+a distance condition. Motif guidance activates within its sampling window once the
+sample meets the anchor-RMSD threshold below.
 
 ### The eight keys
 
@@ -467,7 +443,7 @@ template automatically.
 | `motif_guidance_selection` | `null` | Groups of atoms to pull, each rigid-aligned independently. See the grammar below. |
 | `motif_guidance_reference` | `null` | Where the target coordinates come from. `null` means the input's own coordinates. A path, or a list of `{path, chain_id}`, pulls toward a different structure — the only way to decouple guidance from whatever `template_selection` already conditions on. |
 | `inference_motif_guidance` | `false` | The explicit opt-in. |
-| `inference_motif_guidance_mu` | `1.0` | Fraction of the motif-atom → aligned-target gap closed per inner step. Dimensionless: no noise-level weighting, no step-size schedule, no clipping. **The default is an exact hard snap, not a soft pull.** Lower it to leave the denoiser room to relax neighbouring bonds. `mu=0` is off, not weak — the gate still evaluates and still logs arming. |
+| `inference_motif_guidance_mu` | `1.0` | Fraction of the displacement toward the aligned target applied per inner step. `1` moves motif atoms to the target; values between `0` and `1` apply a partial displacement. `0` leaves coordinates unchanged while activation checks still run. |
 | `inference_motif_guidance_inner_steps` | `1` | Projection steps per diffusion step. The aligned target is refit each one, so the residual gap goes as `(1 - mu)^inner_steps`. `0` is an exact no-op. |
 | `inference_motif_guidance_rmsd_threshold` | `5.0` | A diffusion sample arms once its own anchor RMSD (max over groups) falls below this, in Å, and stays armed. Arming is **per sample**, not per batch: the engine rolls out several samples per trunk pass, each with its own noise draw and its own random frame. |
 | `inference_motif_guidance_t_high` | `0.5` | Upper edge of the active window on the step fraction `t_norm`, which runs `1.0` (first step, high noise) → `~0.0` (last). The default leaves the noisier first half unguided. |
@@ -501,35 +477,21 @@ Each group is fitted on its own, so **inter-group relative pose is not constrain
 the catalytic side chains and the SF4 cluster are each held rigid internally while their
 relative pose can drift. Put atoms in one group when you want their relative pose preserved.
 
-A bare string or a flat list of selections is also accepted, as one group whose anchor is its
-4-field (single-atom) selections, or all of its atoms if it has none. It exists for
-compatibility with task files written against the earlier standalone implementation, and it
-is easy to get wrong — `[A/HIS/47/NE2, A/ASN/110/OD1, B]` anchors a whole chain on two atoms,
-which is exactly the failure below. Prefer the explicit form.
+A bare string or a flat list is also accepted as one group. Its anchors are the
+4-field (single-atom) selections, or all selected atoms if it contains no such
+selections. The explicit `{name, atoms, anchor}` form lets you choose the anchors
+independently.
 
 ### Give every group at least 3 non-collinear anchors
 
-This is the one thing that will silently ruin a run. The sampler re-randomizes the global
-frame every step, independently per diffusion sample, while the reference coordinates are
-fixed — so a group's Kabsch fit is the only thing that maps the reference into the current
-frame. Three non-collinear anchors pin the rotation. Fewer, or a collinear set, leaves a free
-rotation, the fit cannot absorb the random frame, and the motif is placed in an orientation
-that is **wrong and that changes between seeds**. That is worse than guidance not firing.
+The sampler randomizes the coordinate frame at each step and for each diffusion
+sample. Three non-collinear anchors determine the rotation that maps the reference
+into that frame. Fewer anchors, or collinear anchors, leave the rotation underdetermined.
 
-Measured on a 12-atom motif, worst equivariance error over three random frames:
+The input check reports a degenerate anchor set when its second-singular-value ratio
+is below `1e-4`.
 
-| Anchors | Equivariance error |
-|---|---|
-| ≥3, general position | **0.0000 Å** |
-| 2 | 4–16 Å |
-| 1 | 32–43 Å |
-| 3 or 4, collinear | 10–29 Å |
-
-Resolution cannot repair this, so it warns — look for `will NOT steer this group as
-intended` in the log. The check fires only below a second-singular-value ratio of `1e-4`,
-which real motifs sit far above, so it does not cry wolf.
-
-### Other things worth knowing
+### Input and sampling requirements
 
 - **Atoms with no coordinates are dropped.** A whole-residue or whole-chain selection picks
   up parser-added hydrogens, which carry none; keeping them would put `NaN` into every
@@ -539,22 +501,20 @@ which real motifs sit far above, so it does not cry wolf.
   single example's atom axis.
 - **Not available under partial diffusion.** `SamplePartialDiffusion` truncates the noise
   schedule, which would renormalize `t_norm` onto a different noise range, so it refuses.
-- **Watch for the inert run.** If no step falls inside the window, or no sample ever arms,
-  the sampler warns that guidance was attached but never applied — the output is then
-  bit-for-bit an unguided run. With the default `rmsd_threshold=5.0` a motif that never
-  converges that far simply never arms.
+- **Activation.** Guidance applies only inside the configured step window and after
+  the sample meets `inference_motif_guidance_rmsd_threshold` (default 5.0 Å). The
+  sampler logs when no sample activates guidance.
 
 ---
 
-## 11. What you can and cannot reproduce from this repository
+## 11. Metrics and training dependencies
 
 - **Featurization and inference** for all five conditions, plus CFG, run on the structures
   bundled in `docs/releases/rf3/examples/` — see
   [the example index](releases/rf3/examples/design_conditions/README.md).
 - **RASA and atom-pair-distance adherence** can be scored with no external tool.
 - **H-bond metrics and h-bond training** need third-party HBPLUS (`HBPLUS_PATH`).
-- **Hotspot / interface-type validation metrics** have no ready-to-run path here: the
-  datasets they were computed on are not distributed. Point the metrics at your own
-  interface structures.
+- **Hotspot / interface-type validation metrics** take your own interface structures
+  as input.
 - Training-data preparation for DNA-containing inputs additionally needs X3DNA; inference
   skips it entirely.

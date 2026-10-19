@@ -60,8 +60,6 @@ From the above command, you should see an output directory (named after the inpu
 
 The top-level files correspond to the best-ranked sample. Each `seed-X_sample-Y/` subdirectory contains the model and confidences for that particular diffusion sample. The `summary_confidences.json` files contain metrics such as `ptm`, `iptm`, `ranking_score`, `overall_plddt`, chain-level pTM, and pairwise chain PAE/PDE. The `confidences.json` files contain per-atom and per-token confidence data (similar to AlphaFold's output format).
 
-For this example, the pTM in the summary confidences should be `>0.8` (even without an MSA); if not, there may be something wrong with your setup.
-
 ## Common Scenarios
 
 <details>
@@ -366,8 +364,8 @@ view(atom_array)
 
 # If we want to, we can rename residues, adjust charges, add bonds, etc.
 atom_array.chain_id = np.full(len(atom_array), "D")
-# WARNING: Ensure that the provided residue name is not in the CCD! Otherwise, we will try and load it from the CCD and almost certainly fail!
-atom_array.res_name = np.full(len(atom_array), "NAG_2") 
+# Use a residue name absent from the CCD so the supplied custom structure is used.
+atom_array.res_name = np.full(len(atom_array), "NAG_2")
 
 # ... and save to a new file
 to_cif_file(atom_array, "NAG.cif")
@@ -544,11 +542,8 @@ different chains placed in the same group. Three forms, which may be mixed in on
 To fix only the *relative* position of two motifs rather than their internal geometry, put
 one representative atom from each motif together in a group.
 
-> [!IMPORTANT]
-> **Selected residues are atomized whole, and this changes the tokenization of the whole
-> run.** Without it the trunk averages the distances token-wise and the side-chain-level
-> information the condition carries is erased. Expect more tokens, more memory and a
-> different token layout in the outputs than for the same input without the condition.
+Selected residues are atomized whole to retain atom-level distance information.
+This increases the token count and memory use, and changes the output token layout.
 
 ```bash
 # explicit 4x4 distance matrix (6 conditioned pairs)
@@ -587,8 +582,9 @@ It takes a `{group_name: [selections]}` mapping (a flat list is treated as a sin
 rf3 fold inputs='docs/releases/rf3/examples/design_conditions/relative_template/relative_template_7xli.json'
 ```
 
-> [!NOTE]
-> This is a **new inference interface onto a condition RF3 already trained**, not a new condition: it reuses the inter-molecule distance conditioning the network was trained with, and CaGE adds the selection API and the CFG axis. Unlike `distance_template_selection`, it is chain-aware — it conditions distances between different components of a group, not within a chain.
+This interface uses RF3's inter-molecule distance conditioning. It conditions
+distances between different components of a group; `distance_template_selection`
+can also condition distances within a chain.
 
 </details>
 
@@ -608,13 +604,9 @@ respect them, and nothing enforces them at inference time.
 | H-bond donor / acceptor | `hbond_selection` | `{selection: label}` only |
 | Atom-pair distances | `distance_template_selection` | see [Templating Atom-Pair Distances](#templating-atom-pair-distances-distance_template_selection) |
 
-[docs/DESIGN_CONDITIONS.md](../../docs/DESIGN_CONDITIONS.md) is the reference: the feature
-and shape each condition writes, how often it was seen in training, the metric that scores
-it, and the semantics that are easy to get wrong — the RASA label being accessibility
-*within the selected atom set* rather than burial in the complex, `interface_type` being a
-dependent axis under per-condition CFG, `BOTH` and protein-side RASA being out of
-distribution, ions having no `ProtOr` radii. What follows is only the runnable form of
-each; the examples are indexed with their verified featurization counts in
+[docs/DESIGN_CONDITIONS.md](../../docs/DESIGN_CONDITIONS.md) covers feature shapes,
+training rates, metrics and selection requirements. The examples below are also
+indexed with their featurization counts in
 [docs/releases/rf3/examples/design_conditions/](../../docs/releases/rf3/examples/design_conditions/README.md).
 
 ### Interface hotspots (`hotspot_selection`)
@@ -756,22 +748,18 @@ If inputs are given in a form that specifies chirality, the model will receive t
 
 - **`diffusion_batch_size`** *(optional)*: Number of output structures in the ensemble, drawn from the same model seed and forward pass of the Pairformer. Defaults to 5.
 
-- **`num_steps`** *(optional)*: Number of steps for sampling of the diffusion module. AlphaFold3 uses 200 steps, but we find that 50 steps is generally safe with no quality degradation and significant speed improvements. Defaults to 50.
+- **`num_steps`** *(optional)*: Number of diffusion sampling steps. Defaults to 50.
 
 - **`model_seeds`** *(optional)*: List of model seeds. Running inference with multiple model seeds is the best, and most expensive, way to generate output diversity. For example, `model_seeds="[42]"` for a single seed, or `model_seeds="[42, 123]"` for multi-seed inference. Defaults to `null` (no explicit seed reset before each model forward pass).
 
-  **Set this argument explicitly for reproducible runs and scale sweeps.** A `"seed"`
-  field in an input JSON, including `"seed": 0` in the glycosidase examples, is not
-  read by the inference input parser. Pass `model_seeds='[0]'` on the command line,
-  or `model_seeds=[0]` when constructing `RF3InferenceEngine` in Python. The list
-  applies to all examples in the run. With `model_seeds=null`, featurization still
-  internally seeds with 0, and the forward pass continues from the RNG state left
-  by featurization; it does not reset to seed 0 as `model_seeds=[0]` does. An unset
-  model seed is also labelled `seed-0` in output paths, so that label is not evidence
-  that `model_seeds=[0]` was used. Keep the same explicit seed list and
-  `diffusion_batch_size` across sweep settings, and
-  record them with the command; fixing a seed does not guarantee bitwise-identical
-  results across different hardware or software versions.
+  For scale sweeps, explicitly set `model_seeds='[0]'` on the command line, or
+  `model_seeds=[0]` when constructing `RF3InferenceEngine` in Python. Keep the seed
+  list and `diffusion_batch_size` fixed across settings. The list applies to all
+  examples in the run; the input JSON's `"seed"` field is ignored.
+
+  With `model_seeds=null`, the forward pass continues from the RNG state left by
+  featurization, which internally uses seed 0. Output paths use `seed-0` for both
+  `null` and an explicit seed of 0.
 
 - **`template_noise_scale`** *(optional)*: Noise scale applied to template coordinates. Defaults to `1e-5`.
 
@@ -834,9 +822,8 @@ See [Classifier-Free Guidance](#classifier-free-guidance).
 chain A's backbone can be selected with
 `'template_selection=[A/*/*/N, A/*/*/CA, A/*/*/C, A/*/*/O]'`.
 
-Motif guidance is **not** a design condition and **not** a CFG axis: it is an untrained
-projection the sampler applies to `x0` after the CFG blend, so it cannot be named in
-`inference_cfg_scale` and it does not change tokenization. See
+Motif guidance applies a sampler projection to `x0` after the CFG blend. It uses
+the separate controls below and leaves tokenization unchanged. See
 [docs/DESIGN_CONDITIONS.md §10](../../docs/DESIGN_CONDITIONS.md) for the full reference,
 including why every group needs **at least 3 non-collinear anchor atoms**.
 
@@ -846,7 +833,7 @@ including why every group needs **at least 3 non-collinear anchor atoms**.
 
 - **`inference_motif_guidance`** *(optional)*: The explicit opt-in. Defaults to False; a selection alone never arms guidance, so an input carrying one still folds unguided. Enabling it without a selection raises.
 
-- **`inference_motif_guidance_mu`** *(optional)*: Fraction of the motif-atom → aligned-target gap closed per inner step. Dimensionless — no noise-level weighting, no clipping. Defaults to `1.0`, which is an exact **hard snap**, not a soft pull; lower it to leave the denoiser room to relax neighbouring bonds. `0` is off (the gate still evaluates and still logs arming).
+- **`inference_motif_guidance_mu`** *(optional)*: Fraction of the displacement toward the aligned target applied per inner step. Defaults to `1.0`, which moves motif atoms to the target. Values between `0` and `1` apply a partial displacement; `0` leaves the coordinates unchanged while activation checks still run.
 
 - **`inference_motif_guidance_inner_steps`** *(optional)*: Projection steps per diffusion step, the target refit each one, so the residual gap goes as `(1 - mu)^inner_steps`. Defaults to `1`; `0` is an exact no-op.
 
