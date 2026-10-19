@@ -223,4 +223,4 @@ references:
     authors:
       - name: "Institute for Protein Design, University of Washington"
     repository-code: "https://github.com/RosettaCommons/foundry"
-    notes: "CaGE is a derivative work of this repository (BSD-3-Clause); see the README's \"References and sources\" section."
+    notes: "CaGE is a derivative work of this repository (BSD-3-Clause); see LICENSE.md."

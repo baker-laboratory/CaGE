@@ -34,6 +34,6 @@ released under the same BSD 3-Clause terms above:
 
 Copyright (c) 2026, Tingli Qian
 
-Portions of this distribution are licensed separately — see the "References and
-sources" section of README.md and
-lib/atomworks/LICENSE.md.
+For the vendored AtomWorks license, see
+[lib/atomworks/LICENSE.md](lib/atomworks/LICENSE.md). Its source and local
+modifications are described in [lib/atomworks/VENDORED.md](lib/atomworks/VENDORED.md).
