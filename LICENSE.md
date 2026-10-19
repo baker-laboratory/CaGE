@@ -32,8 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 The portions of this distribution added for CaGE (see README.md) are
 released under the same BSD 3-Clause terms above:
 
-Copyright (c) 2026, `<TODO: copyright holder -- the individual authors or the University of
-Washington; to be confirmed with the PI before release>`
+Copyright (c) 2026, Tingli Qian
 
 Portions of this distribution are licensed separately — see the "References and
 sources" section of README.md and
