@@ -47,10 +47,10 @@ uv pip install -e ".[rf3]"
 foundry install run14_confhead
 
 # a first prediction
-rf3 fold inputs='models/rf3/tests/data/5vht_from_json.json'
+rf3 fold inputs='models/rf3/tests/data/5vht_from_json.json' out_dir=./predictions
 
 # a first design condition
-rf3 fold inputs='docs/releases/rf3/examples/design_conditions/hotspot/ppi_hotspot_7xli.json'
+rf3 fold inputs='docs/releases/rf3/examples/design_conditions/hotspot/ppi_hotspot_7xli.json' out_dir=./predictions
 ```
 
 Run `rf3 fold` from the repository root: the bundled example inputs use

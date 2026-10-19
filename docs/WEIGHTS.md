@@ -47,8 +47,8 @@ foundry install run14 run14_confhead --checkpoint-dir /path/to/checkpoints
 Select a registered checkpoint by name:
 
 ```bash
-rf3 fold inputs='models/rf3/tests/data/5vht_from_json.json' ckpt_path=run14
-rf3 fold inputs='models/rf3/tests/data/5vht_from_json.json' ckpt_path=run14_confhead
+rf3 fold inputs='models/rf3/tests/data/5vht_from_json.json' out_dir=./predictions ckpt_path=run14
+rf3 fold inputs='models/rf3/tests/data/5vht_from_json.json' out_dir=./predictions ckpt_path=run14_confhead
 ```
 
 You can also pass a local file with `ckpt_path=/path/to/run14_confhead.ckpt`.

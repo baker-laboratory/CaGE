@@ -86,7 +86,7 @@ Marks atoms that the designed partner is expected to contact.
   — 63 hotspot atoms on the templated antigen chain A of 7XLI.
 
 ```bash
-rf3 fold inputs='docs/releases/rf3/examples/design_conditions/hotspot/ppi_hotspot_7xli.json'
+rf3 fold inputs='docs/releases/rf3/examples/design_conditions/hotspot/ppi_hotspot_7xli.json' out_dir=./predictions
 ```
 
 ---
@@ -113,7 +113,7 @@ Labels *what kind* of interface the hotspots belong to.
   (dict form over the same five residues).
 
 ```bash
-rf3 fold inputs='docs/releases/rf3/examples/design_conditions/interface_type/pli_interface_type_9dfn.json'
+rf3 fold inputs='docs/releases/rf3/examples/design_conditions/interface_type/pli_interface_type_9dfn.json' out_dir=./predictions
 ```
 
 ### Scalar labels and CFG
@@ -160,7 +160,7 @@ Asks for atoms to end up buried, intermediate, or exposed.
   — two entries, auto and explicit, over the 5HKN ligand (120 conditioned atoms each).
 
 ```bash
-rf3 fold inputs='docs/releases/rf3/examples/design_conditions/rasa/ligand_rasa_5hkn.json'
+rf3 fold inputs='docs/releases/rf3/examples/design_conditions/rasa/ligand_rasa_5hkn.json' out_dir=./predictions
 ```
 
 ### SASA calculation and atom selection
@@ -196,7 +196,7 @@ Declares which atoms act as h-bond donors and which as acceptors.
   — 63 labelled atoms around the SAM cofactor of 9DFN.
 
 ```bash
-rf3 fold inputs='docs/releases/rf3/examples/design_conditions/hbond/explicit_hbond_9dfn.json'
+rf3 fold inputs='docs/releases/rf3/examples/design_conditions/hbond/explicit_hbond_9dfn.json' out_dir=./predictions
 ```
 
 ### Training labels
@@ -285,7 +285,7 @@ run raises.
   (from-coordinates form, 3192 conditioned pairs, combined with `template_selection`).
 
 ```bash
-rf3 fold inputs='docs/releases/rf3/examples/design_conditions/2D_distance/distval_matrix_9dfn.json'
+rf3 fold inputs='docs/releases/rf3/examples/design_conditions/2D_distance/distval_matrix_9dfn.json' out_dir=./predictions
 ```
 
 ### Atomization and grouping
@@ -333,7 +333,7 @@ Use `{group_name: [selections]}` to condition distances between components withi
 each group. A flat list becomes a single `__all__` group:
 
 ```bash
-rf3 fold inputs='docs/releases/rf3/examples/design_conditions/relative_template/relative_template_7xli.json'
+rf3 fold inputs='docs/releases/rf3/examples/design_conditions/relative_template/relative_template_7xli.json' out_dir=./predictions
 ```
 
 The inverse-folding behaviour of the released weights likewise rests on these inherited
@@ -350,12 +350,12 @@ inherited axes.
 
 ```bash
 # Guide one axis in isolation at scale 3
-rf3 fold inputs='docs/releases/rf3/examples/design_conditions/2D_distance/distval_matrix_9dfn.json' \
+rf3 fold inputs='docs/releases/rf3/examples/design_conditions/2D_distance/distval_matrix_9dfn.json' out_dir=./predictions \
   inference_classifier_free_guidance=true \
   'inference_cfg_scale={distance_template: 3.0}'
 
 # Guide everything the input selects, as one stream, at scale 2
-rf3 fold inputs='...' inference_classifier_free_guidance=true inference_cfg_scale=2.0
+rf3 fold inputs='...' out_dir=./predictions inference_classifier_free_guidance=true inference_cfg_scale=2.0
 ```
 
 **Float vs dict.** A float builds **one** guidance stream carrying every condition the
@@ -407,7 +407,7 @@ back to `main` for any sample where the requested stream was not produced. The s
 actually used is recorded per row in the CSV.
 
 ```bash
-rf3 fold inputs='...' \
+rf3 fold inputs='...' out_dir=./predictions \
   inference_classifier_free_guidance=true 'inference_cfg_scale={hotspot: 2.0}' \
   'confidence_streams=[main, conditions, merged]' ranking_stream=merged
 ```
@@ -458,7 +458,7 @@ Selections are ordinary `AtomSelectionStack` queries — the same
 one atom, `A/*/38` a whole residue and `B` a whole chain. Use this explicit form:
 
 ```bash
-rf3 fold inputs='docs/releases/rf3/examples/9dfn.cif' \
+rf3 fold inputs='docs/releases/rf3/examples/9dfn.cif' out_dir=./predictions \
   'template_selection=[A/*/*/N, A/*/*/CA, A/*/*/C, A/*/*/O]' \
   inference_motif_guidance=true \
   'motif_guidance_selection=[{name: catalytic_site, atoms: [A/*/38, A/*/45, A/*/47, A/*/110], anchor: [A/CYS/38/SG, A/CYS/45/SG, A/HIS/47/NE2, A/ASN/110/OD1]}, {name: cofactor, atoms: [B]}]'

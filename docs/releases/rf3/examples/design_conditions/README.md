@@ -10,7 +10,7 @@ Run them **from the repository root** — the `components` paths inside each JSO
 repository-relative and are resolved against the working directory:
 
 ```bash
-rf3 fold inputs='docs/releases/rf3/examples/design_conditions/hotspot/ppi_hotspot_7xli.json'
+rf3 fold inputs='docs/releases/rf3/examples/design_conditions/hotspot/ppi_hotspot_7xli.json' out_dir=./predictions
 ```
 
 Field definitions, accepted values and training rates are in
@@ -43,8 +43,8 @@ single example; it has its own section [below](#the-glycosidase-comparison-set).
 
 ## Expected outputs
 
-Every run creates `<name>/` under `out_dir`, named after the `name` field of the entry; the
-layout is in [models/rf3/README.md](../../../../../models/rf3/README.md). Two things are
+With `out_dir=./predictions`, each entry is saved to `./predictions/<name>/`, using
+the entry's `name` field. The layout is in [models/rf3/README.md](../../../../../models/rf3/README.md). Two things are
 specific to these examples: `rasa/ligand_rasa_5hkn.json` holds **two** entries and so
 produces two directories, `ligand_rasa_5hkn_auto/` and `ligand_rasa_5hkn_explicit/`; and
 the distance examples atomize the residues they select, so their outputs carry a different
@@ -100,7 +100,7 @@ Set `inference_motif_guidance=true` on the command line. The task JSON supplies
 `"inference_motif_guidance"` field is ignored by the input parser:
 
 ```bash
-rf3 fold inputs='docs/releases/rf3/examples/design_conditions/motif_guidance/catalytic_site_9dfn.json' \
+rf3 fold inputs='docs/releases/rf3/examples/design_conditions/motif_guidance/catalytic_site_9dfn.json' out_dir=./predictions \
   'template_selection=[A/*/*/N, A/*/*/CA, A/*/*/C, A/*/*/O]' \
   inference_motif_guidance=true
 ```
@@ -117,30 +117,30 @@ names are `hotspot`, `interface_type`, `rasa`, `hbond`, `distance_template`, `te
 
 ```bash
 # Hotspots, guided at scale 2
-rf3 fold inputs='docs/releases/rf3/examples/design_conditions/hotspot/ppi_hotspot_7xli.json' \
+rf3 fold inputs='docs/releases/rf3/examples/design_conditions/hotspot/ppi_hotspot_7xli.json' out_dir=./predictions \
   inference_classifier_free_guidance=true \
   'inference_cfg_scale={hotspot: 2.0}'
 
 # Atom-pair distances, guided at scale 3, with per-stream confidence
-rf3 fold inputs='docs/releases/rf3/examples/design_conditions/2D_distance/distval_matrix_9dfn.json' \
+rf3 fold inputs='docs/releases/rf3/examples/design_conditions/2D_distance/distval_matrix_9dfn.json' out_dir=./predictions \
   inference_classifier_free_guidance=true \
   'inference_cfg_scale={distance_template: 3.0}' \
   'confidence_streams=[main, conditions, merged]' ranking_stream=merged
 
 # RASA, guided only over the mid-noise part of the schedule
-rf3 fold inputs='docs/releases/rf3/examples/design_conditions/rasa/ligand_rasa_5hkn.json' \
+rf3 fold inputs='docs/releases/rf3/examples/design_conditions/rasa/ligand_rasa_5hkn.json' out_dir=./predictions \
   inference_classifier_free_guidance=true \
   'inference_cfg_scale={rasa: 2.0}' \
   inference_cfg_sigma_min=1.0 inference_cfg_sigma_max=300.0
 
 # Everything the input selects, as a single guidance stream
-rf3 fold inputs='docs/releases/rf3/examples/design_conditions/motif/motif_template_9dfn.json' \
+rf3 fold inputs='docs/releases/rf3/examples/design_conditions/motif/motif_template_9dfn.json' out_dir=./predictions \
   inference_classifier_free_guidance=true inference_cfg_scale=2.0
 
 # The glycosidase set: the distance axis against the template axis, into one out_dir
-rf3 fold inputs='docs/releases/rf3/examples/design_conditions/2D_distance/glycosidase_distance_motif.json' \
+rf3 fold inputs='docs/releases/rf3/examples/design_conditions/2D_distance/glycosidase_distance_motif.json' out_dir=./predictions \
   inference_classifier_free_guidance=true 'inference_cfg_scale={distance_template: 1.0}'
-rf3 fold inputs='docs/releases/rf3/examples/design_conditions/2D_distance/glycosidase_template_motif.json' \
+rf3 fold inputs='docs/releases/rf3/examples/design_conditions/2D_distance/glycosidase_template_motif.json' out_dir=./predictions \
   inference_classifier_free_guidance=true 'inference_cfg_scale={template: 1.0}'
 ```
 

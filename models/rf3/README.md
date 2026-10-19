@@ -26,25 +26,25 @@ you need is in **[docs/WEIGHTS.md](../../docs/WEIGHTS.md)**. The short version:
 uv venv --python 3.12 && source .venv/bin/activate
 uv pip install -e ".[rf3]"          # drop the extra on CPU / macOS
 foundry install run14_confhead      # the default ckpt_path
-rf3 fold inputs='models/rf3/tests/data/5vht_from_json.json'
+rf3 fold inputs='models/rf3/tests/data/5vht_from_json.json' out_dir=./predictions
 ```
 
 `ckpt_path` also accepts a path, for a checkpoint not installed under a registered name:
 
 ```bash
-rf3 fold inputs='models/rf3/tests/data/5vht_from_json.json' ckpt_path='/path/to/rf3.ckpt'
+rf3 fold inputs='models/rf3/tests/data/5vht_from_json.json' out_dir=./predictions ckpt_path='/path/to/rf3.ckpt'
 ```
 
 > [!NOTE]
 > For our inference API, we use [hydra](https://hydra.cc/docs/tutorials/basic/your_first_app/simple_cli/) to prepare arguments; the [Hydra documentation](https://hydra.cc/docs/advanced/override_grammar/basic/) describes the command-line override syntax that we use below. Note that Hydra syntax differes from typical CLI or `argparse` syntax in that we don't use `--arg value`, but instead `arg=value`. See below for examples.
 
 > [!TIP]
-> Rather than `rf3 fold`, you may also directly use `python models/rf3/src/rf3/inference.py inputs='models/rf3/tests/data/5vht_from_json.json'` to interface with the Hydra entrypoint. This approach may yield more informative error messages in some cases.
+> Rather than `rf3 fold`, you may also directly use `python models/rf3/src/rf3/inference.py inputs='models/rf3/tests/data/5vht_from_json.json' out_dir=./predictions` to interface with the Hydra entrypoint. This approach may yield more informative error messages in some cases.
 
-From the above command, you should see an output directory (named after the input) with a structure like:
+These commands save predictions under `./predictions`. The first example creates:
 
 ```
-5vht_from_json/
+predictions/5vht_from_json/
 ├── 5vht_from_json_confidences.json          # per-atom confidence data (pLDDT, PAE, PDE, etc.)
 ├── 5vht_from_json_model.cif                 # best-ranked model structure
 ├── 5vht_from_json_ranking_scores.csv        # ranking scores across all seeds/samples
@@ -85,7 +85,7 @@ RF3 supports `.a3m` and `.fasta` files as input MSA formats; `.a3m` is recommend
 🚀 **Run the example:**
 
 ```bash
-rf3 fold inputs='docs/releases/rf3/examples/3en2_from_json_with_msa.json'
+rf3 fold inputs='docs/releases/rf3/examples/3en2_from_json_with_msa.json' out_dir=./predictions
 ```
 
 ---
@@ -105,14 +105,14 @@ _msa_paths_by_chain_id.B   docs/releases/rf3/examples/msas/3en2_A.a3m.gz
 🚀 **Run the example:**
 
 ```bash
-rf3 fold inputs='docs/releases/rf3/examples/3en2_from_file.cif'
+rf3 fold inputs='docs/releases/rf3/examples/3en2_from_file.cif' out_dir=./predictions
 ```
 
 > [!TIP]
 > Early stopping is **disabled by default in this release** (`early_stopping_plddt_threshold=0`), because conditioned design predictions legitimately have low pLDDT. If you set a positive threshold, a prediction the model judges hopeless after one recycle stops early and only writes a `summary_confidences.json`, which saves compute on erroneous inputs — but without an MSA, examples like the ones above are exactly the predictions it will discard.
 
 > [!TIP]
-> To ensure that a provided MSA is loaded correctly, you may use the `raise_if_missing_msa_for_protein_of_length_n` command-line argument. For example, `rf3 fold inputs='docs/releases/rf3/examples/3en2_from_json_with_msa.json' raise_if_missing_msa_for_protein_of_length_n=10` would raise an error if there were any proteins >=10 residues without compatible MSAs.
+> To ensure that a provided MSA is loaded correctly, you may use the `raise_if_missing_msa_for_protein_of_length_n` command-line argument. For example, `rf3 fold inputs='docs/releases/rf3/examples/3en2_from_json_with_msa.json' out_dir=./predictions raise_if_missing_msa_for_protein_of_length_n=10` would raise an error if there were any proteins >=10 residues without compatible MSAs.
 
 > [!TIP]
 > For non-canonical amino acids, most MSA generation algorithms substitute `X` (unknown residue)! Ensure your MSAs adhere to this convention.
@@ -172,7 +172,7 @@ We will automatically distribute predictions across GPU's if running in a multi-
 🚀 **Run the example:**
 
 ```bash
-rf3 fold inputs='docs/releases/rf3/examples/multiple_examples_from_json.json'
+rf3 fold inputs='docs/releases/rf3/examples/multiple_examples_from_json.json' out_dir=./predictions
 ```
 
 ---
@@ -182,7 +182,7 @@ rf3 fold inputs='docs/releases/rf3/examples/multiple_examples_from_json.json'
 You can specify multiple files/directories using Hydra's list syntax:
 
 ```bash
-rf3 fold inputs='[docs/releases/rf3/examples/3en2_from_file.cif, docs/releases/rf3/examples/7o1r_from_json.json]'
+rf3 fold inputs='[docs/releases/rf3/examples/3en2_from_file.cif, docs/releases/rf3/examples/7o1r_from_json.json]' out_dir=./predictions
 ```
 
 ---
@@ -192,14 +192,14 @@ rf3 fold inputs='[docs/releases/rf3/examples/3en2_from_file.cif, docs/releases/r
 Process all CIF/PDB/JSON files in a directory at once (we will distribute across GPU's if running within a multi-GPU environment):
 
 ```bash
-rf3 fold inputs='docs/releases/rf3/examples'
+rf3 fold inputs='docs/releases/rf3/examples' out_dir=./predictions
 ```
 
 > [!TIP]
 > **Performance Tip**: For large batches, consider using `early_stopping_plddt_threshold=0.5` or lower to quickly filter out low-confidence predictions and save compute time on obviously incorrect structures.
 
 > [!NOTE]
-> All outputs will be saved in the same directory (or `out_dir` if specified), with filenames based on the `name` field in your JSON or the original input filenames.
+> Each input has its own subdirectory under `out_dir` (`./predictions` in these examples), named after the JSON `name` field or the input filename stem.
 
 </details>
 
@@ -211,7 +211,7 @@ Complex assemblies containing arbitrary biomolecules can be easily folded if pre
 
 🚀 **Run an example from a prepared CIF file:**
 ```bash
-rf3 fold inputs='docs/releases/rf3/examples/7o1r_from_json.json'
+rf3 fold inputs='docs/releases/rf3/examples/7o1r_from_json.json' out_dir=./predictions
 ```
 
 Such files (including all bonds, covalent modifications, non-canonical amino acids, etc.) can be created either (a) directly from ProteinMPNN/LigandMPNN or other software that generates structural files; or, (b) assembled with [AtomWorks](https://github.com/RosettaCommons/atomworks) or another CIF-processing library.
@@ -257,7 +257,7 @@ For convenience, we also support a `json` API analogous to that implemented by A
 🚀 **Run the example:**
 
 ```bash
-rf3 fold inputs='docs/releases/rf3/examples/7o1r_from_json.json'
+rf3 fold inputs='docs/releases/rf3/examples/7o1r_from_json.json' out_dir=./predictions
 ```
 
 **Supported input options:**
@@ -281,7 +281,7 @@ As described in the **Folding with Arbitrary Biomolecules** scenario above, a we
 
 For example, folding `7o1r`, which contains two N-glycosylations:
 ```bash
-rf3 fold inputs='docs/releases/rf3/examples/7o1r_from_json.json'
+rf3 fold inputs='docs/releases/rf3/examples/7o1r_from_json.json' out_dir=./predictions
 ```
 
 
@@ -472,7 +472,7 @@ It is often helpful to template one or multiple polymer chains while allowing th
 🚀 **Run the example:**
 
 ```bash
-rf3 fold inputs='docs/releases/rf3/examples/7xli_template_antigen_and_framework.json'
+rf3 fold inputs='docs/releases/rf3/examples/7xli_template_antigen_and_framework.json' out_dir=./predictions
 ```
 
 You may also specify templating directly via the CLI using `template_selection="[A, B/*/1-42, ...]"`.
@@ -509,7 +509,7 @@ For the moment, the ground truth conformer track is only effective if we want to
 🚀 **Run the example:**
 
 ```bash
-rf3 fold inputs='docs/releases/rf3/examples/9dfn_template_ligand_and_protein.json'
+rf3 fold inputs='docs/releases/rf3/examples/9dfn_template_ligand_and_protein.json' out_dir=./predictions
 ```
 
 You may also specify the ground truth conformer selection directly via the CLI, e.g., using `ground_truth_conformer_selection="[E]"`
@@ -547,10 +547,10 @@ This increases the token count and memory use, and changes the output token layo
 
 ```bash
 # explicit 4x4 distance matrix (6 conditioned pairs)
-rf3 fold inputs='docs/releases/rf3/examples/design_conditions/2D_distance/distval_matrix_9dfn.json'
+rf3 fold inputs='docs/releases/rf3/examples/design_conditions/2D_distance/distval_matrix_9dfn.json' out_dir=./predictions
 
 # distances taken from the input coordinates, combined with template_selection
-rf3 fold inputs='docs/releases/rf3/examples/design_conditions/motif/motif_template_9dfn.json'
+rf3 fold inputs='docs/releases/rf3/examples/design_conditions/motif/motif_template_9dfn.json' out_dir=./predictions
 ```
 
 [docs/DESIGN_CONDITIONS.md](../../docs/DESIGN_CONDITIONS.md) covers the rest: the CLI
@@ -579,7 +579,7 @@ It takes a `{group_name: [selections]}` mapping (a flat list is treated as a sin
 🚀 **Run the example:**
 
 ```bash
-rf3 fold inputs='docs/releases/rf3/examples/design_conditions/relative_template/relative_template_7xli.json'
+rf3 fold inputs='docs/releases/rf3/examples/design_conditions/relative_template/relative_template_7xli.json' out_dir=./predictions
 ```
 
 This interface uses RF3's inter-molecule distance conditioning. It conditions
@@ -623,7 +623,7 @@ designed.
 ```
 
 ```bash
-rf3 fold inputs='docs/releases/rf3/examples/design_conditions/hotspot/ppi_hotspot_7xli.json'
+rf3 fold inputs='docs/releases/rf3/examples/design_conditions/hotspot/ppi_hotspot_7xli.json' out_dir=./predictions
 ```
 
 ### Interface type (`interface_type`)
@@ -638,8 +638,8 @@ dict form writes onto its own selections and therefore stands alone.
 ```
 
 ```bash
-rf3 fold inputs='docs/releases/rf3/examples/design_conditions/interface_type/pli_interface_type_9dfn.json'
-rf3 fold inputs='docs/releases/rf3/examples/design_conditions/interface_type/pli_interface_type_dict_9dfn.json'
+rf3 fold inputs='docs/releases/rf3/examples/design_conditions/interface_type/pli_interface_type_9dfn.json' out_dir=./predictions
+rf3 fold inputs='docs/releases/rf3/examples/design_conditions/interface_type/pli_interface_type_dict_9dfn.json' out_dir=./predictions
 ```
 
 ### Relative solvent accessibility (`rasa_selection`)
@@ -653,7 +653,7 @@ auto-binned from the input coordinates, or labelled explicitly:
 ```
 
 ```bash
-rf3 fold inputs='docs/releases/rf3/examples/design_conditions/rasa/ligand_rasa_5hkn.json'
+rf3 fold inputs='docs/releases/rf3/examples/design_conditions/rasa/ligand_rasa_5hkn.json' out_dir=./predictions
 ```
 
 ### H-bond donor / acceptor identity (`hbond_selection`)
@@ -668,7 +668,7 @@ does not call.
 ```
 
 ```bash
-rf3 fold inputs='docs/releases/rf3/examples/design_conditions/hbond/explicit_hbond_9dfn.json'
+rf3 fold inputs='docs/releases/rf3/examples/design_conditions/hbond/explicit_hbond_9dfn.json' out_dir=./predictions
 ```
 
 ### Atom-pair distances (`distance_template_selection`)
@@ -687,15 +687,15 @@ RF3's own `template`, `relative_template` and `ground_truth_conformer` tracks.
 
 ```bash
 # guide one axis in isolation (a dict scale makes the main stream unconditional)
-rf3 fold inputs='docs/releases/rf3/examples/design_conditions/2D_distance/distval_matrix_9dfn.json' \
+rf3 fold inputs='docs/releases/rf3/examples/design_conditions/2D_distance/distval_matrix_9dfn.json' out_dir=./predictions \
   inference_classifier_free_guidance=true \
   'inference_cfg_scale={distance_template: 3.0}'
 
 # guide everything the input selects, as one stream
-rf3 fold inputs='...' inference_classifier_free_guidance=true inference_cfg_scale=2.0
+rf3 fold inputs='...' out_dir=./predictions inference_classifier_free_guidance=true inference_cfg_scale=2.0
 
 # score each guidance stream separately, and rank by the merged one
-rf3 fold inputs='...' \
+rf3 fold inputs='...' out_dir=./predictions \
   inference_classifier_free_guidance=true 'inference_cfg_scale={hotspot: 2.0}' \
   'confidence_streams=[main, conditions, merged]' ranking_stream=merged
 ```
@@ -768,7 +768,7 @@ If inputs are given in a form that specifies chirality, the model will receive t
 <details>
 <summary><strong>Advanced Structural Control Arguments</strong></summary>
 
-- **`ground_truth_conformer_selection`** *(optional)*: Selection syntax for residues that should use ground truth conformers instead of generated ones. Uses `AtomSelection` format; see [Selection Grammar](#selection-grammar) for the syntax. If None, no residues will use ground truth conformers. This is useful for keeping known ligand conformations while allowing the model to predict protein structure around them. For example, if chains `C` and `D` are two difficult ligands that are not predicted correctly unconditionally, we could run `rf3 fold ... ground_truth_conformer_selection="[C,D]"` to force a particular conformation (we would also need to provide these chains through a CIF, SDF, or MOL file)
+- **`ground_truth_conformer_selection`** *(optional)*: Selection syntax for residues that should use ground truth conformers instead of generated ones. Uses `AtomSelection` format; see [Selection Grammar](#selection-grammar) for the syntax. If None, no residues will use ground truth conformers. This is useful for keeping known ligand conformations while allowing the model to predict protein structure around them. For example, if chains `C` and `D` are two difficult ligands that are not predicted correctly unconditionally, we could run `rf3 fold ... out_dir=./predictions ground_truth_conformer_selection="[C,D]"` to force a particular conformation (we would also need to provide these chains through a CIF, SDF, or MOL file)
 
 - **`template_selection`** *(optional)*: Selection syntax to provide token-level templates (for both polymers and non-polymers). Uses `AtomSelection` format. Similar to traditional homology-style templates, but also can be applied to small molecules (less rigidly adhered to than the `ground_truth_conformer_selection` approach). See [Folding while Templating](#templating-a-polymer-protein--dna--rna) for more information.
 
@@ -846,7 +846,7 @@ including why every group needs **at least 3 non-collinear anchor atoms**.
 <details>
 <summary><strong>Output Control Arguments</strong></summary>
 
-- **`out_dir`** *(optional)*: Where to save predicted structures. The output files will be named the same as the input structures, or use the `name` field in the specification, if present. If not specified, results are returned in memory and not saved to disk.
+- **`out_dir`** *(optional)*: Parent directory for prediction outputs. Each input is saved in its own subdirectory, named after the JSON `name` field or the input filename stem. For example, `out_dir=./predictions` writes the first example to `./predictions/5vht_from_json/`. If not specified, results are returned in memory and not saved to disk.
 
 - **`dump_predictions`** *(optional)*: Whether to save outputs as CIF files (vs. only the confidence JSON files). Defaults to True.
 
@@ -863,7 +863,7 @@ including why every group needs **at least 3 non-collinear anchor atoms**.
 - **`keep_all`** *(optional)*: Whether to keep waters and crystallization aids when parsing input structures. Defaults to True.
 
   > [!NOTE]
-  > Each diffusion sample is saved as a separate `.cif` file in its own `seed-X_sample-Y/` subdirectory. The best-ranked model is also copied to the top-level output directory.
+  > Each diffusion sample is saved as a separate `.cif` file in its own `seed-X_sample-Y/` subdirectory. The best-ranked model is also saved directly in that input's output directory (`out_dir/<name>/`).
 </details>
 
 

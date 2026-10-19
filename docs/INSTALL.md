@@ -110,13 +110,13 @@ in. Nothing below is required for a basic prediction with downloaded weights.
 ## First prediction
 
 ```bash
-rf3 fold inputs='models/rf3/tests/data/5vht_from_json.json'
+rf3 fold inputs='models/rf3/tests/data/5vht_from_json.json' out_dir=./predictions
 ```
 
 Then try a design condition:
 
 ```bash
-rf3 fold inputs='docs/releases/rf3/examples/design_conditions/hotspot/ppi_hotspot_7xli.json'
+rf3 fold inputs='docs/releases/rf3/examples/design_conditions/hotspot/ppi_hotspot_7xli.json' out_dir=./predictions
 ```
 
 Run `rf3 fold` **from the repository root**: the bundled example JSONs reference their
