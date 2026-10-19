@@ -92,7 +92,6 @@ preferred-citation:
   doi: "10.64898/2026.10.02.756307"
 
 references:
-  # Verbatim from lib/atomworks/README.md (Citation section) -- do not retype from memory.
   - type: article
     title: "Accelerating Biomolecular Modeling with AtomWorks and RF3"
     journal: "bioRxiv"
