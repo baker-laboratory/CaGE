@@ -34,13 +34,19 @@ holds a reference motif rigid during denoising.
 
 ## Getting started
 
+**Model weights are not yet publicly available.** The reserved Zenodo DOI is
+`10.5281/zenodo.23460926`; it will be registered when the weight record is published.
+Inference currently requires an authorized local checkpoint. Place it in
+`~/.foundry/checkpoints/`, or pass its path as `ckpt_path=/path/to/run14_confhead.ckpt`.
+See [docs/WEIGHTS.md](docs/WEIGHTS.md) for availability and file checksums.
+
 ```bash
 # install (see docs/INSTALL.md for the pip route, env vars and GPU notes)
 uv venv --python 3.12 && source .venv/bin/activate
 uv pip install -e ".[rf3]"
 
-# weights -- run14_confhead is the default ckpt_path (see docs/WEIGHTS.md)
-foundry install run14_confhead
+# After the weights are publicly released, download the default checkpoint with:
+# foundry install run14_confhead
 
 # a first prediction
 rf3 fold inputs='models/rf3/tests/data/5vht_from_json.json'
@@ -61,7 +67,7 @@ alone does not prove that `model_seeds=[0]` was used. See
 
 - **[docs/INSTALL.md](docs/INSTALL.md)** — installation, environment variables, optional
   external tools, GPU notes.
-- **[docs/WEIGHTS.md](docs/WEIGHTS.md)** — released checkpoints, what each was trained on,
+- **[docs/WEIGHTS.md](docs/WEIGHTS.md)** — checkpoint availability, what each was trained on,
   and which one you need for per-stream confidence.
 - **[models/rf3/README.md](models/rf3/README.md)** — the full inference API: input
   formats, MSAs, ligands, templating, every command-line argument.

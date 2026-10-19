@@ -1,8 +1,13 @@
-# Released weights
+# Model weights
 
-CaGE releases two checkpoints. They are **not** part of this repository and are **not**
-covered by `LICENSE.md`; they are hosted on Zenodo and registered by name in
+CaGE uses two checkpoints. They are **not yet publicly available**, are **not** part
+of this repository and are **not** covered by its `LICENSE.md`. Both are stored in
+the same unpublished Zenodo draft and registered by name in
 `src/foundry/inference_engines/checkpoint_registry.py`.
+
+The reserved DOI is `10.5281/zenodo.23460926` (record ID `23460926`). It will be
+registered when the record is published; it is not an active download or citation
+link yet. The weight license and public release date remain to be confirmed.
 
 | Registered name | What it is | Trained by |
 | --- | --- | --- |
@@ -11,12 +16,12 @@ covered by `LICENSE.md`; they are hosted on Zenodo and registered by name in
 
 Both are acknowledged in `README.md` under "References and sources".
 
-## Identifiers — to be filled at upload time
+## Reserved identifiers and file checksums
 
-The two released files are **inference-only exports** of the training checkpoints, produced by
+The two files prepared for release are **inference-only exports** of the training checkpoints, produced by
 [`models/rf3/scripts/export_release_checkpoint.py`](../models/rf3/scripts/export_release_checkpoint.py):
 
-| Released as | Exported from | Export |
+| File name | Exported from | Export |
 | --- | --- | --- |
 | `run14.ckpt` | `run14_ep649_dc3fff46.ckpt` (epoch 649 / step 63115) | 5.30 GiB -> 1.33 GiB; 103 internal paths scrubbed |
 | `run14_confhead.ckpt` | `run14_confhead_ft260803_ep0020.ckpt` (confidence-head finetune, epoch 20 / step 10000) | 2.80 GiB -> 1.37 GiB; 57 internal paths scrubbed |
@@ -28,27 +33,33 @@ top of the structure weights it was finetuned from.
 
 | Field | `run14` | `run14_confhead` |
 | --- | --- | --- |
-| Zenodo DOI | `<TODO: Zenodo DOI>` | `<TODO: Zenodo DOI>` |
-| Zenodo record / file URL | `<TODO: Zenodo record id>` | `<TODO: Zenodo record id>` |
+| Reserved Zenodo DOI (not yet registered) | `10.5281/zenodo.23460926` | `10.5281/zenodo.23460926` |
+| Zenodo record ID | `23460926` | `23460926` |
+| Public download | Not available; unpublished draft | Not available; unpublished draft |
 | sha256 | `8aa680d8ebdb553f3d996ad4dd10292a371e0ef1c5b3c0a4acb760d6a9a267cf` | `3c02431345f65580fbc60e10e5d4dae2c8d63988cd605e33db6392c9f8b88772` |
 | Size, as released | 1,423,455,749 B (1.33 GiB) | 1,474,868,299 B (1.37 GiB) |
 | File name | `run14.ckpt` | `run14_confhead.ckpt` |
 
 > The sha256 and size rows describe the exported files as the script above produces them, and
 > are already written into `REGISTERED_CHECKPOINTS`; **re-exporting with different flags
-> changes both**. The DOI and URL rows are filled by the user after uploading, and the same
-> values must replace the `<RECORD_ID>` placeholders in
-> `src/foundry/inference_engines/checkpoint_registry.py`.
+> changes both**. Both registry entries already contain the reserved DOI. Their download
+> URLs retain `<RECORD_ID>` placeholders until public release. Once the record is published,
+> replace those placeholders in `src/foundry/inference_engines/checkpoint_registry.py`,
+> verify anonymous downloads and update the availability statements in these docs.
 
 ## Installing and using them
+
+Until public release, inference requires an authorized local checkpoint. Pass its
+path as `ckpt_path=/path/to/run14_confhead.ckpt`, or place the file under its
+registered filename in `~/.foundry/checkpoints/`.
 
 ```bash
 # list what is registered
 foundry list-available
 
-# download into ~/.foundry/checkpoints (or a directory you choose)
-foundry install run14_confhead
-foundry install run14 run14_confhead --checkpoint-dir /path/to/checkpoints
+# After public release, download into ~/.foundry/checkpoints (or another directory):
+# foundry install run14_confhead
+# foundry install run14 run14_confhead --checkpoint-dir /path/to/checkpoints
 ```
 
 A registered **name** is accepted wherever a checkpoint path is: the default inference config
@@ -154,5 +165,6 @@ was trained, not as a one-command reproduction.
 
 ## Citing the weights
 
-Cite the CaGE manuscript (`CITATION.cff`) and the Zenodo DOI of the specific checkpoint you
-used.
+Cite the CaGE manuscript (`CITATION.cff`). Once the weight record is published, also
+cite its DOI and identify which checkpoint you used. Both checkpoints share the
+same weight-record DOI; it is separate from any DOI for the code or manuscript.

@@ -82,14 +82,21 @@ repository root deliberately does not recurse into `lib/`.
 
 ## Model weights
 
+The checkpoints are **not yet publicly available**. Their shared reserved Zenodo
+DOI is `10.5281/zenodo.23460926`; the record is an unpublished draft and the DOI is
+not registered yet. If you already have an authorized copy, place it in
+`~/.foundry/checkpoints/` or pass its path with `ckpt_path=/path/to/checkpoint.ckpt`.
+
+The following download commands will apply after public release and activation
+of the download URLs:
+
 ```bash
 foundry install run14_confhead      # the default: conditions + confidence head
 foundry install run14               # structure-only weights (ckpt_path=run14)
 ```
 
-Weights land in `~/.foundry/checkpoints` by default. See [WEIGHTS.md](WEIGHTS.md) for what
-each checkpoint contains, which one to use, and the download record
-(`<TODO: Zenodo DOI / record id, filled when the weights are deposited>`).
+Downloaded weights land in `~/.foundry/checkpoints` by default. See
+[WEIGHTS.md](WEIGHTS.md) for availability, checkpoint details and checksums.
 
 ## Environment variables
 
